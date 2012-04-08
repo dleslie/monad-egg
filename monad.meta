@@ -1,0 +1,7 @@
+;;;; opengl.setup -*- Scheme -*-
+
+((license "BSD")
+ (category data)
+ (author "Daniel J. Leslie")
+ (synopsis "Monads")
+ (doc-from-wiki))

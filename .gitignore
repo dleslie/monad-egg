@@ -1,0 +1,9 @@
+#.*#
+*.o
+*.so
+*.c
+*.import.scm
+.*
+files
+meld
+open-files
