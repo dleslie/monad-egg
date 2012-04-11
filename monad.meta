@@ -1,4 +1,4 @@
-;;;; opengl.setup -*- Scheme -*-
+;;;; monad.setup -*- Scheme -*-
 
 ((license "BSD")
  (category data)

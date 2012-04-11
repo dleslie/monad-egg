@@ -1,11 +1,14 @@
-(compile -s -O3 -d1 monad.scm -j monad)
-(compile -s monad.import.scm -O3 -d0)
-(compile -c -O3 -d1 monad.scm -unit monad -j monad)
+;;;; monad.setup -*- Scheme -*-
+
+(compile -s -O3 -d0 monad.scm -j monad)
+(compile -s -O3 -d0 monad.import.scm)
 
 (install-extension
  'monad
- '("monad.so" "monad.o" "monad.import.so")
- '((version 1.0)
+ '("monad.so" "monad.import.so")
+ '((syntax)
+   (import-only)
+   (version 1.0)
    (static "monad.o")))
 
 
