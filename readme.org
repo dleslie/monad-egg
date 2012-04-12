@@ -1,0 +1,148 @@
+-*- mode: org-mode; -*-
+
+* Monads
+
+Monads for Scheme
+
+By Daniel J. Leslie
+dan@ironoxide.ca
+
+* Description
+
+Monads are like a burrito.
+
+Ok, well not.
+
+Monads are types that have:
+1. A binding function of the form: a -> (a -> b) -> M b
+2. A unit function: a -> M a
+
+That's it.
+
+For instance, the identity monad is:
+1. Bind: (lambda (f a) (f a))
+2. Unit: (lambda (a) (a))
+
+Not too bad, eh?
+
+Most of what we write that can be described as a "recipe list" or a "do to" list is a Monad. And, as you may have noticed, we write a lot of boiler plate code to handle the interim wrapping/unwrapping/error checking functionality that occurs between each step.
+
+The Monad egg allows you to write that code once and remain focused on the task at hand.
+
+* Functions
+
+<procedure>(define-monad name unit-function bind-function)</procedure>
+
+Defines a new monad of the given name. Also defines the following procedures:
+
+; name-unit : Constructs a new monad from a value using the given unit function
+; name-bind : Constructs a new monad from an existing monad and a function using the given bind function
+; name? : Predicate for the new monad
+
+Note: when running in a REPL or printing to a string a monad will automatically be run!
+If you don't want this to happen, then capture the value before the REPL would print it.
+
+<procedure>(run monad)</procedure>
+
+Runs a monad and returns the outcome.
+
+<procedure>(using monad [body ...])</procedure>
+
+Within the body the following procedures will be defined:
+
+; >>= : Maps to bind
+; return : Maps to unit
+
+Ie:
+
+(using <id>
+  (>>= (return 1) (lambda (x) (+ x 1))))
+
+Is the same as:
+
+(<id>-bind (<id>-unit 1) (lambda  (x) (+ x 1)))
+
+<procedure>(do-using monad [body ...])</procedure>
+
+Similar to the (using) procedure, but allows for even more terseness.
+
+The body is examined with each entry being evaluated in sequence. If an entry evaluates as a procedure then the bind function is used, otherwise the unit function is used.
+
+Ie,
+
+(do-using <id>
+  (+ 0 1)
+  (lambda (x) (+ x 1)))
+
+Is the same as:
+
+(using <id>
+  (>>= (return (+ 0 1)) (lambda (x) (+ x 1))))
+
+Is the same as:
+
+(<id>-bind (<id>-unit (+ 0 1)) (lambda (x) (+ x 1)))
+
+Is the same as:
+
+(<id>-bind (<id>-unit 1) (lambda (x) (+ x 1)))
+
+Tada!
+
+** Basic Monads
+
+*** Identity
+
+ (define-monad
+   <id>
+   (lambda (a) a)
+   (lambda (a f) (f a)))
+
+*** Maybe
+
+ (define-monad
+   <maybe>
+   (lambda (a) a)
+   (lambda (a f) (if a (f a) #f)))
+
+*** List
+
+ (define-monad
+   <list>
+   (lambda (a) (list a))
+   (lambda (a f) (concatenate! (map! f a))))
+
+** Contribution
+
+Contributions are welcome provided you accept the license I have chosen for this egg for the contributions themselves.
+
+The github repository is at:
+
+
+* License
+
+Copyright 2012 Daniel J. Leslie. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are
+permitted provided that the following conditions are met:
+
+   1. Redistributions of source code must retain the above copyright notice, this list of
+      conditions and the following disclaimer.
+
+   2. Redistributions in binary form must reproduce the above copyright notice, this list
+      of conditions and the following disclaimer in the documentation and/or other materials
+      provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY DANIEL J. LESLIE ''AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DANIEL J. LESLIE OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The views and conclusions contained in the software and documentation are those of the
+authors and should not be interpreted as representing official policies, either expressed
+or implied, of Daniel J. Leslie.
