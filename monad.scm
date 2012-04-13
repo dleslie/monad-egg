@@ -40,6 +40,9 @@
 (define (run monad)
   (force (monad-value monad)))
 
+(define (run-chain init . monads)
+  (fold (lambda (n p) (run (n p))) init monads))
+
  (define-syntax using
    (lambda (f r c)
      (##sys#check-syntax 'using f '(_ _ . _))

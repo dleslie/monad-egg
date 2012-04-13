@@ -118,6 +118,19 @@ Is the same as:
             (lambda (x) (+ x 1)))
        (lambda (y) (+ y 2))))
 
+<procedure>(run-chain init [monadic-functions ...])</procedure>
+
+Runs a chain of monadic functions.
+
+Expects that each monad-returning function accepts a single parameter which can be represented by the init value.
+
+Ie,
+
+#;1> (define (f1 a) (using <id> (return a)))
+#;2> (define (f2 a) (doto-using <id> a (lambda (b) (+ x b))))
+#;3> (run-chain 1 f1 f2)
+2
+
 ** Basic Monads
 
 *** Identity
