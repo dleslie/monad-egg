@@ -1,6 +1,6 @@
 (module 
  monad
- (define-monad using do-using monad? monad-tag
+ (define-monad using doto-using monad? monad-tag
    <id>? <id>-bind <id>-unit
    <maybe>? <maybe>-bind <maybe>-unit
    <list>? <list>-bind <list>-unit)
@@ -56,25 +56,23 @@
 
  ; (>>= (>>= (first) (second)) (third))
 
- (define-syntax do-using
+ (define-syntax doto-using
    (lambda (f r c)
-     (##sys#check-syntax 'do-using f '(_ _ . _))
+     (##sys#check-syntax 'do-using f '(_ _ _ . _))
      (letrec ((name (cadr f))
-              (body (cddr f))
+              (init (caddr f))
+              (body (cdddr f))
               (bindf (symbol-append name '-bind))
               (unitf (symbol-append name '-unit))
               (bind-next 
                (lambda (previous-monad remaining)
                  (let* ((next (car remaining))
                         (rest (cdr remaining))
-                        (current-monad
-                         (if (procedure? (eval next))
-                             `(,bindf ,previous-monad ,next)
-                             `(,unitf ,next))))
+                        (current-monad `(,bindf ,previous-monad ,next)))
                    (if (eq? '() rest)
                        current-monad
                        (bind-next current-monad rest))))))
-       (bind-next '() body))))
+       (bind-next `(,unitf ,init) body))))
 
  (define-monad
    <id>

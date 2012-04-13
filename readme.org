@@ -39,6 +39,36 @@ Monads aren't simply about iterating over a value or set of values and passing t
 
 Yes, sometimes this isn't strictly a necessary set of functionality. But for when it is, save yourself some time and write a monad.
 
+** What's this about lazy evaluation?
+
+Yes, this monad implementation is lazily evaluated.
+
+That is, the monads are.
+
+When (run) is called with a given Monad the bind and unit functions are evaluated and their actions are undertaken. This happens once, and once only. Further executions of (run) will simply return the computed value of the first execution.
+
+Furthermore, when running in a REPL or printing to a string a monad will automatically be run!
+If you don't want this to happen, then capture the value before the REPL would print it.
+
+For example:
+#;1> (use monad)
+; loading /usr/local/lib/chicken/6/monad.so ...
+; loading /usr/local/lib/chicken/6/monad.import.so ...
+#;2> (define m (doto-using <id> 1 (lambda (x) (display "Hi!\n") (+ x 1))))
+#;3> m
+Hi!
+#<id> 2
+#;4> m
+#<id> 2
+#;5> (define (m2 y) (doto-using <id> y (lambda (x) (display "Hi!\n") (+ x 1))))
+#;6> (m2 1)
+Hi!
+#<id> 2
+#;7> (m2 1)
+Hi!
+#<id> 2
+#
+
 * Functions
 
 <procedure>(define-monad name unit-function bind-function)</procedure>
@@ -48,9 +78,6 @@ Defines a new monad of the given name. Also defines the following procedures:
 ; name-unit : Constructs a new monad from a value using the given unit function
 ; name-bind : Constructs a new monad from an existing monad and a function using the given bind function
 ; name? : Predicate for the new monad
-
-Note: when running in a REPL or printing to a string a monad will automatically be run!
-If you don't want this to happen, then capture the value before the REPL would print it.
 
 <procedure>(run monad)</procedure>
 
@@ -72,32 +99,24 @@ Is the same as:
 
 (<id>-bind (<id>-unit 1) (lambda  (x) (+ x 1)))
 
-<procedure>(do-using monad [body ...])</procedure>
+<procedure>(doto-using monad init [body ...])</procedure>
 
 Similar to the (using) procedure, but allows for even more terseness.
 
-The body is examined with each entry being evaluated in sequence. If an entry evaluates as a procedure then the bind function is used, otherwise the unit function is used.
+The init value is turned into a monad using the monad's unit-function, and is then passed to a chain of monads constructed via a cascading chain of bind-function operations performed upon the body.
 
 Ie,
 
-(do-using <id>
-  (+ 0 1)
-  (lambda (x) (+ x 1)))
+(doto-using <id> (+ 0 1)
+  (lambda (x) (+ x 1))
+  (lambda (y) (+ y 2)))
 
 Is the same as:
 
 (using <id>
-  (>>= (return (+ 0 1)) (lambda (x) (+ x 1))))
-
-Is the same as:
-
-(<id>-bind (<id>-unit (+ 0 1)) (lambda (x) (+ x 1)))
-
-Is the same as:
-
-(<id>-bind (<id>-unit 1) (lambda (x) (+ x 1)))
-
-Tada!
+  (>>= (>>= (return (+ 0 1)) 
+            (lambda (x) (+ x 1)))
+       (lambda (y) (+ y 2))))
 
 ** Basic Monads
 
