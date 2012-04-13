@@ -127,7 +127,7 @@ Tada!
 Contributions are welcome provided you accept the license I have chosen for this egg for the contributions themselves.
 
 The github repository is at:
-
+https://github.com/dleslie/monad-egg
 
 * License
 
