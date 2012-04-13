@@ -1,10 +1,9 @@
--*- mode: org-mode; -*-
-
 * Monads
 
 Monads for Scheme
 
 By Daniel J. Leslie
+
 dan@ironoxide.ca
 
 * Description
@@ -16,12 +15,14 @@ Monads are like a burrito.
 Ok, well not.
 
 Monads are types that have:
+
 1. A binding function of the form: a -> (a -> b) -> M b
 2. A unit function: a -> M a
 
 That's it.
 
 For instance, the identity monad is:
+
 1. Bind: (lambda (f a) (f a))
 2. Unit: (lambda (a) (a))
 
@@ -51,55 +52,58 @@ Furthermore, when running in a REPL or printing to a string a monad will automat
 If you don't want this to happen, then capture the value before the REPL would print it.
 
 For example:
-#;1> (use monad)
-; loading /usr/local/lib/chicken/6/monad.so ...
-; loading /usr/local/lib/chicken/6/monad.import.so ...
-#;2> (define m (doto-using <id> 1 (lambda (x) (display "Hi!\n") (+ x 1))))
-#;3> m
-Hi!
-#<id> 2
-#;4> m
-#<id> 2
-#;5> (define (m2 y) (doto-using <id> y (lambda (x) (display "Hi!\n") (+ x 1))))
-#;6> (m2 1)
-Hi!
-#<id> 2
-#;7> (m2 1)
-Hi!
-#<id> 2
-#
+: #;1> (use monad)
+: ; loading /usr/local/lib/chicken/6/monad.so ...
+: ; loading /usr/local/lib/chicken/6/monad.import.so ...
+: #;2> (define m (doto-using <id> 1 (lambda (x) (display "Hi!\n") (+ x 1))))
+: #;3> m
+: Hi!
+: #<id> 2
+: #;4> m
+: #<id> 2
+: #;5> (define (m2 y) (doto-using <id> y (lambda (x) (display "Hi!\n") (+ x 1))))
+: #;6> (m2 1)
+: Hi!
+: #<id> 2
+: #;7> (m2 1)
+: Hi!
+: #<id> 2
 
 * Functions
 
-<procedure>(define-monad name unit-function bind-function)</procedure>
+*** (define-monad name unit-function bind-function)
 
 Defines a new monad of the given name. Also defines the following procedures:
 
-; name-unit : Constructs a new monad from a value using the given unit function
-; name-bind : Constructs a new monad from an existing monad and a function using the given bind function
-; name? : Predicate for the new monad
+| Function  | Usage                                                                                      |
+|-----------+--------------------------------------------------------------------------------------------|
+| name-unit | Constructs a new monad from a value using the given unit function                          |
+| name-bind | Constructs a new monad from an existing monad and a function using the given bind function |
+| name?     | Predicate for the new monad                                                                |
 
-<procedure>(run monad)</procedure>
+*** (run monad)
 
 Runs a monad and returns the outcome.
 
-<procedure>(using monad [body ...])</procedure>
+*** (using monad [body ...])
 
 Within the body the following procedures will be defined:
 
-; >>= : Maps to bind
-; return : Maps to unit
+| Function | Usage        |
+|----------+--------------|
+| >>=      | Maps to bind |
+| return   | Maps to unit |
 
 Ie:
 
-(using <id>
-  (>>= (return 1) (lambda (x) (+ x 1))))
+: (using <id>
+:  (>>= (return 1) (lambda (x) (+ x 1))))
 
 Is the same as:
 
-(<id>-bind (<id>-unit 1) (lambda  (x) (+ x 1)))
+: (<id>-bind (<id>-unit 1) (lambda  (x) (+ x 1)))
 
-<procedure>(doto-using monad init [body ...])</procedure>
+*** (doto-using monad init [body ...])
 
 Similar to the (using) procedure, but allows for even more terseness.
 
@@ -107,18 +111,18 @@ The init value is turned into a monad using the monad's unit-function, and is th
 
 Ie,
 
-(doto-using <id> (+ 0 1)
-  (lambda (x) (+ x 1))
-  (lambda (y) (+ y 2)))
+: (doto-using <id> (+ 0 1)
+:   (lambda (x) (+ x 1))
+:   (lambda (y) (+ y 2)))
 
 Is the same as:
 
-(using <id>
-  (>>= (>>= (return (+ 0 1)) 
-            (lambda (x) (+ x 1)))
-       (lambda (y) (+ y 2))))
+: (using <id>
+:   (>>= (>>= (return (+ 0 1)) 
+:             (lambda (x) (+ x 1)))
+:        (lambda (y) (+ y 2))))
 
-<procedure>(run-chain init [monadic-functions ...])</procedure>
+*** (run-chain init [monadic-functions ...])
 
 Runs a chain of monadic functions.
 
@@ -126,40 +130,76 @@ Expects that each monad-returning function accepts a single parameter which can 
 
 Ie,
 
-#;1> (define (f1 a) (using <id> (return a)))
-#;2> (define (f2 a) (doto-using <id> a (lambda (b) (+ x b))))
-#;3> (run-chain 1 f1 f2)
-2
+: #;1> (define (f1 a) (using <id> (return a)))
+: #;2> (define (f2 a) (doto-using <id> a (lambda (b) (+ x b))))
+: #;3> (run-chain 1 f1 f2)
+: 2
 
 ** Basic Monads
 
+Simple monads pre-defined by this egg.
+
 *** Identity
 
- (define-monad
-   <id>
-   (lambda (a) a)
-   (lambda (a f) (f a)))
+:  (define-monad
+:    <id>
+:    (lambda (a) a)
+:    (lambda (a f) (f a)))
 
 *** Maybe
 
- (define-monad
-   <maybe>
-   (lambda (a) a)
-   (lambda (a f) (if a (f a) #f)))
+:  (define-monad
+:    <maybe>
+:    (lambda (a) a)
+:    (lambda (a f) (if a (f a) #f)))
 
 *** List
 
- (define-monad
-   <list>
-   (lambda (a) (list a))
-   (lambda (a f) (concatenate! (map! f a))))
+:  (define-monad
+:    <list>
+:    (lambda (a) (list a))
+:    (lambda (a f) (concatenate! (map! f a))))
+
+** Example
+
+Everyone expects a prototypical logger example, so here goes:
+
+: (define-monad <logger>
+:   (lambda (a) 
+:     (let ((p (car a))
+:           (v (cdr a)))
+:       (fprintf p "Starting with: ~S\n" v)
+:       a))
+:   (lambda (a f)
+:     (let* ((p (car a))
+:            (v (cdr a))
+:            (r (f v)))
+:       (fprintf p "Calling (~S ~S) returned ~S\n" f v r)
+:       (cons p r))))
+: 
+: (define (f1 x) (+ x 1))
+: (define (f2 x) (- x 1))
+: 
+: (define m
+:   (doto-using <logger> 
+:               (cons (current-output-port) 0) 
+:               f1 
+:               f2))
+: 
+: (assert (eq? 0 (cdr (run m)))
+:         "Did the logger test work?")
+
+Outputs:
+
+: Starting with: 0
+: Calling (#<procedure (f1 x)> 0) returned 1
+: Calling (#<procedure (f2 x)> 1) returned 0
 
 ** Contribution
 
 Contributions are welcome provided you accept the license I have chosen for this egg for the contributions themselves.
 
-The github repository is at:
-https://github.com/dleslie/monad-egg
+The github repository is at: https://github.com/dleslie/monad-egg
 
 * License
 
