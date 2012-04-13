@@ -164,6 +164,9 @@ Simple monads pre-defined by this egg.
 
 Everyone expects a prototypical logger example, so here goes:
 
+: ; Wrap the output port in the intermediary value, so that:
+: ; (return a) gives as a value ( output-port . a )
+:
 : (define-monad <logger>
 :   (lambda (a) 
 :     (let ((p (car a))
