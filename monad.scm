@@ -1,9 +1,9 @@
 (module 
  monad
  (define-monad using do-using monad? monad-tag
-   <id>? <id>-bind <id>-unit <id>-run
-   <maybe>? <maybe>-bind <maybe>-unit <maybe>-run
-   <list>? <list>-bind <list>-unit <list>-run)
+   <id>? <id>-bind <id>-unit
+   <maybe>? <maybe>-bind <maybe>-unit
+   <list>? <list>-bind <list>-unit)
  (import scheme chicken extras srfi-1)
 
  ;; Want:
@@ -12,7 +12,6 @@
  ;; Which produces:
  ;; (name-unit value) : monad value
  ;; (name-bind value function) : (lambda (value-type)) : monad value2
- ;; (name-run monad) : value
 
  ;; Also have:
  ;; (using name monad) : monad value
@@ -21,7 +20,7 @@
 
  (define-record monad tag value)
  (define-record-printer (monad m out)
-   (fprintf out "#~S ~S" (monad-tag m) (force (monad-value m))))
+   (fprintf out "#~S ~S" (monad-tag m) (run m)))
 
  (define-syntax define-monad
    (lambda (f r c)
@@ -41,10 +40,10 @@
            (make-monad ',name (delay (,unit-function val))))
           (,(r 'define) (,bindf m1 f)
            (,(r 'let) ((a (force (monad-value m1))))
-            (make-monad ',name (delay (,bind-function a f)))))
-          (,(r 'define) (,run m)
-           (force (monad-value m))))
-       )))
+            (make-monad ',name (delay (,bind-function a f)))))))))
+
+(define (run monad)
+  (force (monad-value monad)))
 
  (define-syntax using
    (lambda (f r c)

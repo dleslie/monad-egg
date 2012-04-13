@@ -9,6 +9,8 @@ dan@ironoxide.ca
 
 * Description
 
+** What is a Monad?
+
 Monads are like a burrito.
 
 Ok, well not.
@@ -28,6 +30,14 @@ Not too bad, eh?
 Most of what we write that can be described as a "recipe list" or a "do to" list is a Monad. And, as you may have noticed, we write a lot of boiler plate code to handle the interim wrapping/unwrapping/error checking functionality that occurs between each step.
 
 The Monad egg allows you to write that code once and remain focused on the task at hand.
+
+** Why not use miscmacros:doto instead?
+
+Because you may want intermediary control and multiple usage of a unit function.
+
+Monads aren't simply about iterating over a value or set of values and passing them to various functions; they're about removing recurring boilerplate related to constructing the desired values, and any intermediary steps that may be required between processing the values.
+
+Yes, sometimes this isn't strictly a necessary set of functionality. But for when it is, save yourself some time and write a monad.
 
 * Functions
 
