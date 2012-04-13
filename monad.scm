@@ -1,6 +1,6 @@
 (module 
  monad
- (define-monad using doto-using monad? monad-tag
+ (define-monad using doto-using monad? monad-tag make-monad monad-value
    <id>? <id>-bind <id>-unit
    <maybe>? <maybe>-bind <maybe>-unit
    <list>? <list>-bind <list>-unit)
