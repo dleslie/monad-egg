@@ -1,9 +1,5 @@
 (module 
- monad
- (define-monad using doto-using monad? monad-tag make-monad monad-value
-   <id>? <id>-bind <id>-unit
-   <maybe>? <maybe>-bind <maybe>-unit
-   <list>? <list>-bind <list>-unit)
+ monad *
  (import scheme chicken extras srfi-1)
 
  ;; Want:
@@ -39,8 +35,7 @@
           (,(r 'define) (,unit val)
            (make-monad ',name (delay (,unit-function val))))
           (,(r 'define) (,bindf m1 f)
-           (,(r 'let) ((a (force (monad-value m1))))
-            (make-monad ',name (delay (,bind-function a f)))))))))
+           (make-monad ',name (delay (,bind-function (force (monad-value m1)) f))))))))
 
 (define (run monad)
   (force (monad-value monad)))
