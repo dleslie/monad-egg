@@ -24,7 +24,7 @@ That's it.
 For instance, the identity monad is:
 
 1. Bind: (lambda (f a) (f a))
-2. Unit: (lambda (a) (a))
+2. Unit: (lambda (a) a)
 
 Not too bad, eh?
 
