@@ -86,3 +86,38 @@
    <list>
    (lambda (a) (list a))
    (lambda (a f) (concatenate! (map! f a)))))
+
+
+ (define-monad
+   <state>
+   (lambda (a) (lambda (s) `(,a . ,s)))
+   (lambda (a f)
+     (lambda (s)
+       (let* ((p (a s))
+              (a^ (car p))
+              (s^ (cdr p)))
+         ((f a^) s^)))))
+
+ (define-monad
+   <reader>
+   (lambda (a) (lambda (v) a))
+   (lambda (a f) (lambda (v) ((f (a v)) v))))
+
+ (define-monad
+   <cps>
+   (lambda (a) (lambda (k) (k a)))
+   (lambda (a f) (lambda (k) (a (lambda (a^) (let ((b (f a^))) (b k)))))))
+
+ (define-monad
+   <exception>
+   (lambda (a) `(success ,a))
+   (lambda (a f) (if (eq? (car a) 'success) (f (cadr a)) a)))
+
+ (define-monad
+    <writer>
+    (lambda (a) `(,a . ()))
+    (lambda (a f)
+      (let (b (f (car a))))
+        `(,(car b) . ,(append (cdr a) (cdr b)))))
+
+
