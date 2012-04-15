@@ -37,11 +37,11 @@
           (,(r 'define) (,bindf m1 f)
            (make-monad ',name (delay (,bind-function (force (monad-value m1)) f))))))))
 
-(define (run monad)
-  (force (monad-value monad)))
+ (define (run monad)
+   (force (monad-value monad)))
 
-(define (run-chain init . monads)
-  (fold (lambda (n p) (run (n p))) init monads))
+ (define (run-chain init . monads)
+   (fold (lambda (n p) (run (n p))) init monads))
 
  (define-syntax using
    (lambda (f r c)
@@ -52,7 +52,7 @@
                     (return ,(symbol-append name '-unit)))
          ,@body))))
 
- ; (>>= (>>= (first) (second)) (third))
+                                        ; (>>= (>>= (first) (second)) (third))
 
  (define-syntax doto-using
    (lambda (f r c)
@@ -85,8 +85,7 @@
  (define-monad
    <list>
    (lambda (a) (list a))
-   (lambda (a f) (concatenate! (map! f a)))))
-
+   (lambda (a f) (concatenate! (map! f a))))
 
  (define-monad
    <state>
@@ -114,8 +113,8 @@
    (lambda (a f) (if (eq? (car a) 'success) (f (cadr a)) a)))
 
  (define-monad
-    <writer>
-    (lambda (a) `(,a . ()))
-    (lambda (a f)
-      (let (b (f (car a)))
-        `(,(car b) . ,(append (cdr a) (cdr b))))))
+   <writer>
+   (lambda (a) `(,a . ()))
+   (lambda (a f)
+     (let ((b (f (car a))))
+       `(,(car b) . ,(append (cdr a) (cdr b)))))))

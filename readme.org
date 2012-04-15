@@ -2,10 +2,6 @@
 
 Monads for Scheme
 
-By Daniel J. Leslie
-
-dan@ironoxide.ca
-
 * Description
 
 ** What is a Monad?
@@ -160,6 +156,48 @@ Simple monads pre-defined by this egg.
 :    (lambda (a) (list a))
 :    (lambda (a f) (concatenate! (map! f a))))
 
+*** State
+
+:  (define-monad
+:    <state>
+:    (lambda (a) (lambda (s) `(,a . ,s)))
+:    (lambda (a f)
+:      (lambda (s)
+:        (let* ((p (a s))
+:               (a^ (car p))
+:               (s^ (cdr p)))
+:          ((f a^) s^)))))
+
+*** Reader
+
+:  (define-monad
+:    <reader>
+:    (lambda (a) (lambda (v) a))
+:    (lambda (a f) (lambda (v) ((f (a v)) v))))
+
+*** CPS
+
+:  (define-monad
+:    <cps>
+:    (lambda (a) (lambda (k) (k a)))
+:    (lambda (a f) (lambda (k) (a (lambda (a^) (let ((b (f a^))) (b k)))))))
+
+*** Exception
+
+:  (define-monad
+:    <exception>
+:    (lambda (a) `(success ,a))
+:    (lambda (a f) (if (eq? (car a) 'success) (f (cadr a)) a)))
+
+*** Writer
+
+:  (define-monad
+:    <writer>
+:    (lambda (a) `(,a . ()))
+:    (lambda (a f)
+:      (let ((b (f (car a))))
+:        `(,(car b) . ,(append (cdr a) (cdr b))))))
+
 ** Example
 
 Everyone expects a prototypical logger example, so here goes:
@@ -203,6 +241,13 @@ Outputs:
 Contributions are welcome provided you accept the license I have chosen for this egg for the contributions themselves.
 
 The github repository is at: https://github.com/dleslie/monad-egg
+
+** Authors
+
+Original Egg By Daniel J. Leslie
+dan@ironoxide.ca
+
+State, Reader, Writer, CPS and Exception monads contributed by Cameron Swords.
 
 * License
 
