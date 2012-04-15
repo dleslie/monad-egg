@@ -117,7 +117,5 @@
     <writer>
     (lambda (a) `(,a . ()))
     (lambda (a f)
-      (let (b (f (car a))))
-        `(,(car b) . ,(append (cdr a) (cdr b)))))
-
-
+      (let (b (f (car a)))
+        `(,(car b) . ,(append (cdr a) (cdr b))))))
