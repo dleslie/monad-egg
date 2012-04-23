@@ -179,19 +179,20 @@ Simple monads pre-defined by this egg.
 :      (let ((b (f (car a))))
 :        `(,(car b) . ,(append (cdr a) (cdr b))))))
 
-** Version History
+* Version History
 
-; 2.0 : Rewrote API to allow for terser execution and a simpler interface. Removed use of promises completely. Removed doto-using, run-chain, and run from the API completely. Added do-using syntax. Maybe monad is now self-defined for it's value or no-value states. 
+; 2.1 : Rewrote API to allow for terser execution and a simpler interface. Removed use of promises completely. Removed doto-using, run-chain, and run from the API completely. Added do-using syntax. Maybe monad is now self-defined for it's value or no-value states. 
+; 2.0 : Internal rewrite that broke the API, immediately followed by 2.1.
 ; 1.1 : Added Cameron Swords' State, Reader, Writer, CPS and Exception monads
 ; 1.0 : Initial release
 
-** Contribution
+* Contribution
 
 Contributions are welcome provided you accept the license I have chosen for this egg for the contributions themselves.
 
 The github repository is at: https://github.com/dleslie/monad-egg
 
-** Authors
+* Authors
 
 Original Egg By Daniel J. Leslie
 dan@ironoxide.ca
