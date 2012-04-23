@@ -84,6 +84,13 @@ Would be the same as:
 : (define (foo bar)
 :   (if (not bar)
 :       'Nothing
+:       (<maybe>-unit bar)))
+
+Would be the same as:
+
+: (define (foo bar)
+:   (if (not bar)
+:       'Nothing
 :       `(Just ,bar)))
 
 *** (do-using monad [body ...])
