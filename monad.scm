@@ -2,46 +2,23 @@
  monad *
  (import scheme chicken extras srfi-1)
 
- ;; Want:
- ;; (define-monad name return bind)
- ;;
- ;; Which produces:
- ;; (name-unit value) : monad value
- ;; (name-bind value function) : (lambda (value-type)) : monad value2
-
- ;; Also have:
- ;; (using name monad) : monad value
- ;; Which defines, internally:
- ;; >>= return
-
- (define-record monad tag value)
- (define-record-printer (monad m out)
-   (fprintf out "#~S ~S" (monad-tag m) (run m)))
-
  (define-syntax define-monad
    (lambda (f r c)
      (##sys#check-syntax 'define-monad f '(_ _ _ . _))
      (let* ((name (cadr f))
             (unit-function (caddr f))
             (bind-function (cadddr f))
-            (pred (symbol-append name '?))
             (bindf (symbol-append name '-bind))
             (unit (symbol-append name '-unit))
             (run (symbol-append name '-run)))
        `(begin
-          (,(r 'define) (,pred m)
-           (and (monad? m)
-                (eq? (monad-tag m) ',name)))
           (,(r 'define) (,unit val)
-           (make-monad ',name (delay (,unit-function val))))
+           (,unit-function val))
           (,(r 'define) (,bindf m1 f)
-           (make-monad ',name (delay (,bind-function (force (monad-value m1)) f))))))))
-
- (define (run monad)
-   (force (monad-value monad)))
+           (,bind-function m1 f))))))
 
  (define (run-chain init . monads)
-   (fold (lambda (n p) (run (n p))) init monads))
+   (fold (lambda (n p) (n p)) init monads))
 
  (define-syntax using
    (lambda (f r c)
@@ -52,25 +29,29 @@
                     (return ,(symbol-append name '-unit)))
          ,@body))))
 
-                                        ; (>>= (>>= (first) (second)) (third))
-
- (define-syntax doto-using
+ (define-syntax return
    (lambda (f r c)
-     (##sys#check-syntax 'do-using f '(_ _ _ . _))
+     (##sys#check-syntax 'return f '(_ _ . _))
+     (let* ((name (cadr f))
+            (body (cddr f)))
+       `(,(symbol-append name '-unit) ,@body))))
+
+ (define-syntax do-using
+   (lambda (f r c)
+     (##sys#check-syntax 'do-using f '(_ _ . _))
      (letrec ((name (cadr f))
-              (init (caddr f))
-              (body (cdddr f))
+              (body (cddr f))
               (bindf (symbol-append name '-bind))
-              (unitf (symbol-append name '-unit))
-              (bind-next 
-               (lambda (previous-monad remaining)
-                 (let* ((next (car remaining))
-                        (rest (cdr remaining))
-                        (current-monad `(,bindf ,previous-monad ,next)))
-                   (if (eq? '() rest)
-                       current-monad
-                       (bind-next current-monad rest))))))
-       (bind-next `(,unitf ,init) body))))
+              (unitf (symbol-append name '-unit)))
+       `((,(r 'lambda) ()
+          (define-syntax bound-do
+            (syntax-rules (<-)
+              ((_ m) m)
+              ((_ (var <- m) m* m** ...)
+               (,bindf m (lambda (var) (bound-do m* m** ...))))
+              ((_ bind m m* m** ...)
+               (,bindf m (lambda (_) (bound-do m* m** ...))))))
+          (bound-do ,@body))))))
 
  (define-monad
    <id>
@@ -79,8 +60,8 @@
 
  (define-monad
    <maybe>
-   (lambda (a) a)
-   (lambda (a f) (if a (f a) #f)))
+   (lambda (a)  `(Just ,a))
+   (lambda (a f) (if (not (eq? 'Nothing a)) (f a) 'Nothing)))
 
  (define-monad
    <list>
