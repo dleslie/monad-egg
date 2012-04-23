@@ -9,16 +9,12 @@
             (unit-function (caddr f))
             (bind-function (cadddr f))
             (bindf (symbol-append name '-bind))
-            (unit (symbol-append name '-unit))
-            (run (symbol-append name '-run)))
+            (unit (symbol-append name '-unit)))
        `(begin
           (,(r 'define) (,unit val)
            (,unit-function val))
           (,(r 'define) (,bindf m1 f)
            (,bind-function m1 f))))))
-
- (define (run-chain init . monads)
-   (fold (lambda (n p) (n p)) init monads))
 
  (define-syntax using
    (lambda (f r c)
@@ -49,7 +45,7 @@
               ((_ m) m)
               ((_ (var <- m) m* m** ...)
                (,bindf m (lambda (var) (bound-do m* m** ...))))
-              ((_ bind m m* m** ...)
+              ((_ m m* m** ...)
                (,bindf m (lambda (_) (bound-do m* m** ...))))))
           (bound-do ,@body))))))
 

@@ -40,30 +40,6 @@ Yes, sometimes this isn't strictly a necessary set of functionality. But for whe
 
 Yes, this monad implementation is lazily evaluated.
 
-That is, the monads are.
-
-When (run) is called with a given Monad the bind and unit functions are evaluated and their actions are undertaken. This happens once, and once only. Further executions of (run) will simply return the computed value of the first execution.
-
-Furthermore, when running in a REPL or printing to a string a monad will automatically be run!
-If you don't want this to happen, then capture the value before the REPL would print it.
-
-For example:
-: #;1> (use monad)
-: ; loading /usr/local/lib/chicken/6/monad.so ...
-: ; loading /usr/local/lib/chicken/6/monad.import.so ...
-: #;2> (define m (doto-using <id> 1 (lambda (x) (display "Hi!\n") (+ x 1))))
-: #;3> m
-: Hi!
-: #<id> 2
-: #;4> m
-: #<id> 2
-: #;5> (define (m2 y) (doto-using <id> y (lambda (x) (display "Hi!\n") (+ x 1))))
-: #;6> (m2 1)
-: Hi!
-: #<id> 2
-: #;7> (m2 1)
-: Hi!
-: #<id> 2
 
 * Functions
 
@@ -75,11 +51,6 @@ Defines a new monad of the given name. Also defines the following procedures:
 |-----------+--------------------------------------------------------------------------------------------|
 | name-unit | Constructs a new monad from a value using the given unit function                          |
 | name-bind | Constructs a new monad from an existing monad and a function using the given bind function |
-| name?     | Predicate for the new monad                                                                |
-
-*** (run monad)
-
-Runs a monad and returns the outcome.
 
 *** (using monad [body ...])
 
@@ -99,37 +70,47 @@ Is the same as:
 
 : (<id>-bind (<id>-unit 1) (lambda  (x) (+ x 1)))
 
-*** (doto-using monad init [body ...])
+*** (return monad value)
+
+Allows any function to lift a value into the monad provided. Ie,
+
+: (define (foo bar)
+:   (if (not bar)
+:       'Nothing
+:       (return <maybe> bar)))
+
+Would be the same as:
+
+: (define (foo bar)
+:   (if (not bar)
+:       'Nothing
+:       `(Just ,bar)))
+
+*** (do-using monad [body ...])
 
 Similar to the (using) procedure, but allows for even more terseness.
 
-The init value is turned into a monad using the monad's unit-function, and is then passed to a chain of monads constructed via a cascading chain of bind-function operations performed upon the body.
+Within the (do-using) body a special binding syntax is allowed, which can be understood by this example:
 
-Ie,
+: (do-using <maybe>
+:    (x <- (return <maybe> 1))
+:    x)
+: 
+: ;Returns:
+: (Just 1)
 
-: (doto-using <id> (+ 0 1)
-:   (lambda (x) (+ x 1))
-:   (lambda (y) (+ y 2)))
+Or, a more complex example:
 
-Is the same as:
-
-: (using <id>
-:   (>>= (>>= (return (+ 0 1)) 
-:             (lambda (x) (+ x 1)))
-:        (lambda (y) (+ y 2))))
-
-*** (run-chain init [monadic-functions ...])
-
-Runs a chain of monadic functions.
-
-Expects that each monad-returning function accepts a single parameter which can be represented by the init value.
-
-Ie,
-
-: #;1> (define (f1 a) (using <id> (return a)))
-: #;2> (define (f2 a) (doto-using <id> a (lambda (b) (+ x b))))
-: #;3> (run-chain 1 f1 f2)
-: 2
+: (do-using <maybe> 
+:           (x <- (return <maybe> 1))
+:           (if (eq? 2 (cadr x))
+:               (return <maybe> 'Banana)
+:               'Nothing)
+:           (y <- (return <maybe> 'Apple))
+:           y)
+:
+: ;Returns:
+: Nothing
 
 ** Basic Monads
 
@@ -198,43 +179,11 @@ Simple monads pre-defined by this egg.
 :      (let ((b (f (car a))))
 :        `(,(car b) . ,(append (cdr a) (cdr b))))))
 
-** Example
+** Version History
 
-Everyone expects a prototypical logger example, so here goes:
-
-: ; Wrap the output port in the intermediary value, so that:
-: ; (return a) gives as a value ( output-port . a )
-:
-: (define-monad <logger>
-:   (lambda (a) 
-:     (let ((p (car a))
-:           (v (cdr a)))
-:       (fprintf p "Starting with: ~S\n" v)
-:       a))
-:   (lambda (a f)
-:     (let* ((p (car a))
-:            (v (cdr a))
-:            (r (f v)))
-:       (fprintf p "Calling (~S ~S) returned ~S\n" f v r)
-:       (cons p r))))
-: 
-: (define (f1 x) (+ x 1))
-: (define (f2 x) (- x 1))
-: 
-: (define m
-:   (doto-using <logger> 
-:               (cons (current-output-port) 0) 
-:               f1 
-:               f2))
-: 
-: (assert (eq? 0 (cdr (run m)))
-:         "Did the logger test work?")
-
-Outputs:
-
-: Starting with: 0
-: Calling (#<procedure (f1 x)> 0) returned 1
-: Calling (#<procedure (f2 x)> 1) returned 0
+; 2.0 : Rewrote API to allow for terser execution and a simpler interface. Removed use of promises completely. Removed doto-using, run-chain, and run from the API completely. Added do-using syntax. Maybe monad is now self-defined for it's value or no-value states. 
+; 1.1 : Added Cameron Swords' State, Reader, Writer, CPS and Exception monads
+; 1.0 : Initial release
 
 ** Contribution
 
