@@ -181,10 +181,13 @@ Simple monads pre-defined by this egg.
 
 * Version History
 
-; 2.1 : Rewrote API to allow for terser execution and a simpler interface. Removed use of promises completely. Removed doto-using, run-chain, and run from the API completely. Added do-using syntax. Maybe monad is now self-defined for it's value or no-value states. 
-; 2.0 : Internal rewrite that broke the API, immediately followed by 2.1.
-; 1.1 : Added Cameron Swords' State, Reader, Writer, CPS and Exception monads
-; 1.0 : Initial release
+2.1 : Rewrote API to allow for terser execution and a simpler interface. Removed use of promises completely. Removed doto-using, run-chain, and run from the API completely. Added do-using syntax. Maybe monad is now self-defined for it's value or no-value states. 
+
+2.0 : Internal rewrite that broke the API, immediately followed by 2.1.
+
+1.1 : Added Cameron Swords' State, Reader, Writer, CPS and Exception monads
+
+1.0 : Initial release
 
 * Contribution
 
