@@ -8,13 +8,18 @@
      (let* ((name (cadr f))
             (unit-function (caddr f))
             (bind-function (cadddr f))
+            (rest (cddddr f))
+            (fail-function (if (null? rest)
+                               `(case-lambda (() (error (format "Failure in evaluating ~S monad." ',name)))
+                                             ((_ . _) (error (format "Failure in evaluating ~S monad." ',name))))
+                               (car rest)))
             (bindf (symbol-append name '-bind))
-            (unit (symbol-append name '-unit)))
+            (unitf (symbol-append name '-unit))
+            (failf (symbol-append name '-fail)))
        `(begin
-          (,(r 'define) (,unit val)
-           (,unit-function val))
-          (,(r 'define) (,bindf m1 f)
-           (,bind-function m1 f))))))
+          (,(r 'define) ,unitf ,unit-function)
+          (,(r 'define) ,bindf ,bind-function)
+          (,(r 'define) ,failf ,fail-function)))))
 
  (define-syntax using
    (lambda (f r c)
@@ -22,8 +27,16 @@
      (let* ((name (cadr f))
             (body (cddr f)))
        `(,(r 'let) ((>>= ,(symbol-append name '-bind))
-                    (return ,(symbol-append name '-unit)))
+                    (return ,(symbol-append name '-unit))
+                    (fail ,(symbol-append name '-fail)))
          ,@body))))
+
+ (define-syntax fail
+   (lambda (f r c)
+     (##sys#check-syntax 'return f '(_ _ . _))
+     (let* ((name (cadr f))
+            (body (cddr f)))
+       `(,(symbol-append name '-fail) ,@body))))
 
  (define-syntax return
    (lambda (f r c)
@@ -38,7 +51,8 @@
      (letrec ((name (cadr f))
               (body (cddr f))
               (bindf (symbol-append name '-bind))
-              (unitf (symbol-append name '-unit)))
+              (unitf (symbol-append name '-unit))
+              (failf (symbol-append name '-fail)))
        `((,(r 'lambda) ()
           (define-syntax bound-do
             (syntax-rules (<-)
@@ -57,7 +71,9 @@
  (define-monad
    <maybe>
    (lambda (a)  `(Just ,a))
-   (lambda (a f) (if (not (eq? 'Nothing a)) (f a) 'Nothing)))
+   (lambda (a f) (if (not (eq? 'Nothing a)) (f a) 'Nothing))
+   (case-lambda (() 'Nothing)
+                ((_ . _) 'Nothing)))
 
  (define-monad
    <list>
@@ -87,7 +103,9 @@
  (define-monad
    <exception>
    (lambda (a) `(success ,a))
-   (lambda (a f) (if (eq? (car a) 'success) (f (cadr a)) a)))
+   (lambda (a f) (if (eq? (car a) 'success) (f (cadr a)) a))
+   (case-lambda (() `(failure))
+                ((a . b) `(failure ,a . ,b))))
 
  (define-monad
    <writer>

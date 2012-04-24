@@ -43,14 +43,17 @@ Yes, this monad implementation is lazily evaluated.
 
 * Functions
 
-*** (define-monad name unit-function bind-function)
+*** (define-monad name unit-function bind-function [fail-function])
 
 Defines a new monad of the given name. Also defines the following procedures:
 
-| Function  | Usage                                                                                      |
-|-----------+--------------------------------------------------------------------------------------------|
-| name-unit | Constructs a new monad from a value using the given unit function                          |
-| name-bind | Constructs a new monad from an existing monad and a function using the given bind function |
+Providing 'fail-function' is optional.
+
+| Function  | Usage                                                                                        |
+|-----------+----------------------------------------------------------------------------------------------|
+| name-unit | Constructs a new monad from a value using the given unit function                            |
+| name-bind | Constructs a new monad from an existing monad and a function using the given bind function   |
+| name-fail | Constructs a 'failure' case monad for the given monadic type. Defaults to throwing an assert          |
 
 *** (using monad [body ...])
 
@@ -92,6 +95,12 @@ Would be the same as:
 :   (if (not bar)
 :       'Nothing
 :       `(Just ,bar)))
+
+*** (fail monad [body ...])
+
+Creates the failure case for the given monad, optionally providing a body to the failure state constructor.
+
+Defaults to throwing an assert for most monads.
 
 *** (do-using monad [body ...])
 
@@ -135,7 +144,9 @@ Simple monads pre-defined by this egg.
 :  (define-monad
 :    <maybe>
 :    (lambda (a) a)
-:    (lambda (a f) (if a (f a) #f)))
+:    (lambda (a f) (if a (f a) #f))
+:    (case-lambda (() 'Nothing)
+:                 ((_ . _) 'Nothing)))
 
 *** List
 
@@ -175,7 +186,9 @@ Simple monads pre-defined by this egg.
 :  (define-monad
 :    <exception>
 :    (lambda (a) `(success ,a))
-:    (lambda (a f) (if (eq? (car a) 'success) (f (cadr a)) a)))
+:    (lambda (a f) (if (eq? (car a) 'success) (f (cadr a)) a))
+:    (case-lambda (() `(failure))
+:                 ((a . b) `(failure ,a . ,b))))
 
 *** Writer
 
@@ -190,6 +203,7 @@ Simple monads pre-defined by this egg.
 
 | Version | Notes                                                                                                                                                                                                                                                            |
 |---------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|     2.2 | Added failure states for monads                                                                                                                                                                                                                                  |
 |     2.1 | Rewrote API to allow for terser execution and a simpler interface. Removed use of promises completely. Removed doto-using, run-chain, and run from the API completely. Added do-using syntax. Maybe monad is now self-defined for it's value or no-value states. |
 |     2.0 | Internal rewrite that broke the API, immediately followed by 2.1.                                                                                                                                                                                                |
 |     1.1 | Added Cameron Swords' State, Reader, Writer, CPS and Exception monads                                                                                                                                                                                            |
