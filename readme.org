@@ -79,14 +79,14 @@ Allows any function to lift a value into the monad provided. Ie,
 
 : (define (foo bar)
 :   (if (not bar)
-:       'Nothing
+:       (fail <maybe>)
 :       (return <maybe> bar)))
 
 Would be the same as:
 
 : (define (foo bar)
 :   (if (not bar)
-:       'Nothing
+:       (<maybe>-fail)
 :       (<maybe>-unit bar)))
 
 Would be the same as:
@@ -121,7 +121,7 @@ Or, a more complex example:
 :           (x <- (return <maybe> 1))
 :           (if (eq? 2 (cadr x))
 :               (return <maybe> 'Banana)
-:               'Nothing)
+:               (fail <maybe>))
 :           (y <- (return <maybe> 'Apple))
 :           y)
 :
