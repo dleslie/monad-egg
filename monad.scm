@@ -45,15 +45,20 @@
             (body (cddr f)))
        `(,(symbol-append name '-unit) ,@body))))
 
- (define-syntax do-using
+ (define-syntax do-using 
    (lambda (f r c)
-     (##sys#check-syntax 'do-using f '(_ _ . _))
      (letrec ((name (cadr f))
               (body (cddr f))
               (bindf (symbol-append name '-bind))
               (unitf (symbol-append name '-unit))
-              (failf (symbol-append name '-fail)))
+              (failf (symbol-append name '-fail))
+              (name- (symbol-append name '-)))
        `((,(r 'lambda) ()
+          (define-syntax :
+            (syntax-rules ()
+              ((_ f a ...)
+               (let ((f* (eval (symbol-append ',name- 'f))))
+                 (f* a ...)))))
           (define-syntax bound-do
             (syntax-rules (<-)
               ((_ m) m)
@@ -112,4 +117,7 @@
    (lambda (a) `(,a . ()))
    (lambda (a f)
      (let ((b (f (car a))))
-       `(,(car b) . ,(append (cdr a) (cdr b)))))))
+       `(,(car b) . ,(append (cdr a) (cdr b))))))
+
+ (define (<writer>-tell v) `(_ . (,v)))
+)
