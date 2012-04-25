@@ -29,6 +29,11 @@
        `(,(r 'let) ((>>= ,(symbol-append name '-bind))
                     (return ,(symbol-append name '-unit))
                     (fail ,(symbol-append name '-fail)))
+         (define-syntax :
+           (lambda (f r c)
+             (let* ((f* (symbol-append ',name '- (cadr f)))
+                    (rest (cddr f)))
+               `(,f* . ,rest))))
          ,@body))))
 
  (define-syntax fail
@@ -55,10 +60,10 @@
               (name- (symbol-append name '-)))
        `((,(r 'lambda) ()
           (define-syntax :
-            (syntax-rules ()
-              ((_ f a ...)
-               (let ((f* (eval (symbol-append ',name- 'f))))
-                 (f* a ...)))))
+            (lambda (f r c)
+              (let* ((f* (symbol-append ',name- (cadr f)))
+                     (rest (cddr f)))
+                `(,f* . ,rest))))
           (define-syntax bound-do
             (syntax-rules (<-)
               ((_ m) m)
