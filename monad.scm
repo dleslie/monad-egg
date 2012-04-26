@@ -63,6 +63,8 @@
             (apply ,unitf rest))
           (define (fail . rest)
             (apply ,failf rest))
+          (define (>>= . rest)
+            (apply ,bindf rest))
           (define-syntax :
             (lambda (f r c)
               (let* ((f* (symbol-append ',name- (cadr f)))

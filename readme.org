@@ -40,7 +40,6 @@ Yes, sometimes this isn't strictly a necessary set of functionality. But for whe
 
 Yes, this monad implementation is lazily evaluated.
 
-
 * Functions
 
 *** (define-monad name unit-function bind-function [fail-function])
@@ -63,6 +62,7 @@ Within the body the following procedures will be defined:
 |----------+--------------|
 | >>=      | Maps to bind |
 | return   | Maps to unit |
+| fail     | Maps to fail |
 
 Ie:
 
@@ -106,7 +106,49 @@ Defaults to throwing an assert for most monads.
 
 Similar to the (using) procedure, but allows for even more terseness.
 
-Within the (do-using) body a special binding syntax is allowed, which can be understood by this example:
+Within do-using the following will be defined:
+
+| Function | Usage                                                             |
+|----------+-------------------------------------------------------------------|
+| >>=      | Maps to bind                                                      |
+| return   | Maps to unit                                                      |
+| fail     | Maps to fail                                                      |
+| :        | Shorthand for calling monad-specific functions, details follow    |
+| <-       | Shorthand for binding a symbol to a monadic value, details follow |
+
+**** : Keyword
+
+The : keyword is used as a shortcut for referencing monad-specific procedures which are prefixed with the current monad name.
+
+For example:
+
+: (do-using <writer> (: tell 1))
+
+Is the same as:
+
+: (do-using <writer> (<writer>-tell 1))
+
+**** <- Keyword
+
+The <- keyword is used as a shortcut for binding a value within a monad.
+
+For example:
+
+: (do-using <maybe>
+:   (x <- (return 1))
+:   x)
+
+Is the same as:
+
+: (do-using <maybe>
+:   (>>= (return 1)
+:     (lambda (x)
+:       (do-using <maybe>
+:         x))))
+
+**** General Example
+
+A simple example:
 
 : (do-using <maybe>
 :    (x <- (return <maybe> 1))
@@ -118,11 +160,11 @@ Within the (do-using) body a special binding syntax is allowed, which can be und
 Or, a more complex example:
 
 : (do-using <maybe> 
-:           (x <- (return <maybe> 1))
+:           (x <- (return 1))
 :           (if (eq? 2 (cadr x))
-:               (return <maybe> 'Banana)
-:               (fail <maybe>))
-:           (y <- (return <maybe> 'Apple))
+:               (return 'Banana)
+:               (fail))
+:           (y <- (return 'Apple))
 :           y)
 :
 : ;Returns:
@@ -203,6 +245,7 @@ Simple monads pre-defined by this egg.
 
 | Version | Notes                                                                                                                                                                                                                                                            |
 |---------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|     2.3 | Added fail function for all monads which defaults to assert, but is definied appropriately for the <exception> and <maybe> monads. Added : keyword to using and do-using. Added >>=, return and fail bindings to do-using syntax.                                |
 |     2.2 | Added failure states for monads                                                                                                                                                                                                                                  |
 |     2.1 | Rewrote API to allow for terser execution and a simpler interface. Removed use of promises completely. Removed doto-using, run-chain, and run from the API completely. Added do-using syntax. Maybe monad is now self-defined for it's value or no-value states. |
 |     2.0 | Internal rewrite that broke the API, immediately followed by 2.1.                                                                                                                                                                                                |
