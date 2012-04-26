@@ -59,6 +59,10 @@
               (failf (symbol-append name '-fail))
               (name- (symbol-append name '-)))
        `((,(r 'lambda) ()
+          (define (return . rest)
+            (apply ,unitf rest))
+          (define (fail . rest)
+            (apply ,failf rest))
           (define-syntax :
             (lambda (f r c)
               (let* ((f* (symbol-append ',name- (cadr f)))
@@ -100,6 +104,13 @@
               (s^ (cdr p)))
          ((f a^) s^)))))
 
+ (define (<state>-get s)
+   `(,s . ,s))
+
+ (define (<state>-put new-state)
+   (lambda (s)
+     `(_ . ,new-state)))
+
  (define-monad
    <reader>
    (lambda (a) (lambda (v) a))
@@ -124,5 +135,6 @@
      (let ((b (f (car a))))
        `(,(car b) . ,(append (cdr a) (cdr b))))))
 
- (define (<writer>-tell v) `(_ . (,v)))
+ (define (<writer>-tell v) 
+   `(_ . (,v)))
 )
