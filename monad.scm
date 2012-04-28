@@ -33,7 +33,11 @@
            (lambda (f r c)
              (let* ((f* (symbol-append ',name '- (cadr f)))
                     (rest (cddr f)))
-               `(,f* . ,rest))))
+               f*)))
+         (define-syntax :!
+           (syntax-rules ()
+             ((_ f ...)
+              ((: f) ...))))
          ,@body))))
 
  (define-syntax fail
@@ -69,7 +73,11 @@
             (lambda (f r c)
               (let* ((f* (symbol-append ',name- (cadr f)))
                      (rest (cddr f)))
-                `(,f* . ,rest))))
+                f*)))
+          (define-syntax :!
+            (syntax-rules ()
+              ((_ f ...)
+               ((: f) ...))))
           (define-syntax bound-do
             (syntax-rules (<-)
               ((_ m) m)
@@ -118,10 +126,21 @@
    (lambda (a) (lambda (v) a))
    (lambda (a f) (lambda (v) ((f (a v)) v))))
 
+ (define (<reader>-ask)
+   (lambda (a) a))
+
+ (define (<reader>-local f)
+   (lambda (a)
+     (f a)))
+
  (define-monad
    <cps>
    (lambda (a) (lambda (k) (k a)))
    (lambda (a f) (lambda (k) (a (lambda (a^) (let ((b (f a^))) (b k)))))))
+
+ (define (<cps>-call/cc f)
+   (lambda (c)
+     ((f [lambda (a) (lambda () (c a))]) c)))
 
  (define-monad
    <exception>
@@ -139,4 +158,18 @@
 
  (define (<writer>-tell v) 
    `(_ . (,v)))
+
+ (define (<writer>-listen)
+   (lambda (a)
+     (let ((a* (car a))
+           (w* (cdr a)))
+       `(,a . ,w*))))
+
+ (define (<writer>-pass)
+   (lambda (a)
+     (let* ((p (car a))
+            (w (cdr a))
+            (a* (car p))
+            (f (cadr p)))
+       `(,a* . ,(f w)))))
 )

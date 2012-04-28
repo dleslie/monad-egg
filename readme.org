@@ -1,9 +1,7 @@
 * Monads
-
 Monads for Scheme
 
 * Description
-
 ** What is a Monad?
 
 Monads are like a burrito.
@@ -41,7 +39,6 @@ Yes, sometimes this isn't strictly a necessary set of functionality. But for whe
 Yes, this monad implementation is lazily evaluated.
 
 * Functions
-
 *** (define-monad name unit-function bind-function [fail-function])
 
 Defines a new monad of the given name. Also defines the following procedures:
@@ -116,17 +113,29 @@ Within do-using the following will be defined:
 | :        | Shorthand for calling monad-specific functions, details follow    |
 | <-       | Shorthand for binding a symbol to a monadic value, details follow |
 
-**** : Keyword
+**** :! Keyword
 
-The : keyword is used as a shortcut for referencing monad-specific procedures which are prefixed with the current monad name.
+The :! keyword is used as a shortcut for referencing monad-specific procedures which are prefixed with the current monad name.
 
 For example:
 
-: (do-using <writer> (: tell 1))
+: (do-using <writer> (:! tell 1))
 
 Is the same as:
 
 : (do-using <writer> (<writer>-tell 1))
+
+**** : Keyword
+
+The : keyword is like :!, except that it references the procedure without executing it.
+
+For example:
+
+: (do-using <state> (x <- (: get)) (return x))
+
+Is the same as:
+
+: (do-using <writer> (x <- <state>-get) (return x))
 
 **** <- Keyword
 
@@ -170,18 +179,17 @@ Or, a more complex example:
 : ;Returns:
 : Nothing
 
-** Basic Monads
-
+* Basic Monads
 Simple monads pre-defined by this egg.
 
-*** Identity
+** Identity
 
 :  (define-monad
 :    <id>
 :    (lambda (a) a)
 :    (lambda (a f) (f a)))
 
-*** Maybe
+** Maybe
 
 :  (define-monad
 :    <maybe>
@@ -190,14 +198,14 @@ Simple monads pre-defined by this egg.
 :    (case-lambda (() 'Nothing)
 :                 ((_ . _) 'Nothing)))
 
-*** List
+** List
 
 :  (define-monad
 :    <list>
 :    (lambda (a) (list a))
 :    (lambda (a f) (concatenate! (map! f a))))
 
-*** State
+** State
 
 :  (define-monad
 :    <state>
@@ -209,21 +217,21 @@ Simple monads pre-defined by this egg.
 :               (s^ (cdr p)))
 :          ((f a^) s^)))))
 
-*** Reader
+** Reader
 
 :  (define-monad
 :    <reader>
 :    (lambda (a) (lambda (v) a))
 :    (lambda (a f) (lambda (v) ((f (a v)) v))))
 
-*** CPS
+** CPS
 
 :  (define-monad
 :    <cps>
 :    (lambda (a) (lambda (k) (k a)))
 :    (lambda (a f) (lambda (k) (a (lambda (a^) (let ((b (f a^))) (b k)))))))
 
-*** Exception
+** Exception
 
 :  (define-monad
 :    <exception>
@@ -232,7 +240,7 @@ Simple monads pre-defined by this egg.
 :    (case-lambda (() `(failure))
 :                 ((a . b) `(failure ,a . ,b))))
 
-*** Writer
+** Writer
 
 :  (define-monad
 :    <writer>
@@ -245,6 +253,7 @@ Simple monads pre-defined by this egg.
 
 | Version | Notes                                                                                                                                                                                                                                                            |
 |---------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|     2.4 | Added :! keyword, fixed : keyword                                                                                                                                                                                                                                |
 |     2.3 | Added fail function for all monads which defaults to assert, but is definied appropriately for the <exception> and <maybe> monads. Added : keyword to using and do-using. Added >>=, return and fail bindings to do-using syntax.                                |
 |     2.2 | Added failure states for monads                                                                                                                                                                                                                                  |
 |     2.1 | Rewrote API to allow for terser execution and a simpler interface. Removed use of promises completely. Removed doto-using, run-chain, and run from the API completely. Added do-using syntax. Maybe monad is now self-defined for it's value or no-value states. |
