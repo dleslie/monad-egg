@@ -31,13 +31,13 @@
                     (fail ,(symbol-append name '-fail)))
          (define-syntax :
            (lambda (f r c)
-             (let* ((f* (symbol-append ',name '- (cadr f)))
-                    (rest (cddr f)))
+             (let* ((f* (symbol-append ',name '- (cadr f))))
                f*)))
-         (define-syntax :!
-           (syntax-rules ()
-             ((_ f ...)
-              ((: f) ...))))
+          (define-syntax :!
+            (lambda (f r c)
+              (let* ((f* (symbol-append ',name- (cadr f)))
+                     (rest (cddr f)))
+                `(,f* . ,rest))))
          ,@body))))
 
  (define-syntax fail
@@ -71,13 +71,13 @@
             (apply ,bindf rest))
           (define-syntax :
             (lambda (f r c)
-              (let* ((f* (symbol-append ',name- (cadr f)))
-                     (rest (cddr f)))
+              (let* ((f* (symbol-append ',name- (cadr f))))
                 f*)))
           (define-syntax :!
-            (syntax-rules ()
-              ((_ f ...)
-               ((: f) ...))))
+            (lambda (f r c)
+              (let* ((f* (symbol-append ',name- (cadr f)))
+                     (rest (cddr f)))
+                `(,f* . ,rest))))
           (define-syntax bound-do
             (syntax-rules (<-)
               ((_ m) m)
