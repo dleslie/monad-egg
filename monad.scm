@@ -116,7 +116,7 @@
 
  (define (<state>-put new-state)
    (lambda (s)
-     `(_ . ,new-state)))
+     `(() . ,new-state)))
 
  (define-monad
    <reader>
