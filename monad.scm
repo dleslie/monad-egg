@@ -63,12 +63,9 @@
               (failf (symbol-append name '-fail))
               (name- (symbol-append name '-)))
        `((,(r 'lambda) ()
-          (define (return . rest)
-            (apply ,unitf rest))
-          (define (fail . rest)
-            (apply ,failf rest))
-          (define (>>= . rest)
-            (apply ,bindf rest))
+          (define return ,unitf)
+          (define fail ,failf)
+          (define >>= ,bindf)
           (define-syntax :
             (lambda (f r c)
               (let* ((f* (symbol-append ',name- (cadr f))))
@@ -126,12 +123,16 @@
    (lambda (a) (lambda (v) a))
    (lambda (a f) (lambda (v) ((f (a v)) v))))
 
- (define (<reader>-ask)
-   (lambda (a) a))
+ (define (<reader>-ask a) a)
 
- (define (<reader>-local f)
+ (define (<reader>-asks f)
+   (do-using <reader>
+             (x <- (: ask))
+             (return (f x))))
+
+ (define (<reader>-local f r)
    (lambda (a)
-     (f a)))
+     (r (f a))))
 
  (define-monad
    <cps>
@@ -153,23 +154,33 @@
    <writer>
    (lambda (a) `(,a . ()))
    (lambda (a f)
-     (let ((b (f (car a))))
-       `(,(car b) . ,(append (cdr a) (cdr b))))))
+     (let* ((b (f (car a)))
+            (w* (if (list? (cdr b)) (cdr b) (list (cdr b))))
+            (aw* (if (list? (cdr a)) (cdr a) (list (cdr a)))))
+       `(,(car b) . ,(append aw* w*)))))
 
- (define (<writer>-tell v) 
-   `(_ . (,v)))
+ (define (<writer>-tell v)
+   `(() . ,v))
+ 
+ (define (<writer>-listen a) 
+   `(,a . ,(cdr a)))
 
- (define (<writer>-listen)
-   (lambda (a)
-     (let ((a* (car a))
-           (w* (cdr a)))
-       `(,a . ,w*))))
+ (define (<writer>-pass a) ; expects ((v . f) . w)
+   (let ((v (caar a))
+         (f (cdar a))
+         (w (cdr a)))
+     (begin
+       (f w)
+       `(() . ,v))))
 
- (define (<writer>-pass)
-   (lambda (a)
-     (let* ((p (car a))
-            (w (cdr a))
-            (a* (car p))
-            (f (cadr p)))
-       `(,a* . ,(f w)))))
+ (define (<writer>-listens f a)
+   (do-using <writer>
+             (w <- (:! listen a))
+             (return `(,(car w) . ,(f (cdr w))))))
+
+ (define (<writer>-censor f a)
+   (<writer>-pass 
+    (do-using <writer>
+              (w <- a)
+              (return `(,w . ,f)))))
 )
