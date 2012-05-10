@@ -84,6 +84,11 @@
                (,bindf m (lambda (_) (bound-do m* m** ...))))))
           (bound-do ,@body))))))
 
+ (define-syntax do
+   (syntax-rules ()
+     ((do m ...)
+      (do-using m ...))))
+
  (define-monad
    <id>
    (lambda (a) a)
