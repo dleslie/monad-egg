@@ -118,6 +118,18 @@
    (lambda (s)
      `(() . ,new-state)))
 
+ (define (<state>-gets f)
+   (do-using 
+    <state>
+    (s <- (: get))
+    (return (f s))))
+
+ (define (<state>-modify f)
+   (do-using
+    <state>
+    (s <- (: get))
+    (: put (f s))))
+
  (define-monad
    <reader>
    (lambda (a) (lambda (v) a))
@@ -149,6 +161,16 @@
    (lambda (a f) (if (eq? (car a) 'success) (f (cadr a)) a))
    (case-lambda (() `(failure))
                 ((a . b) `(failure ,a . ,b))))
+
+ (define (<exception>-throw e)
+   (do-using 
+    <exception>
+    (:! fail e)))
+
+ (define (<exception>-catch m f)
+   (if (eq? (car m) 'failure)
+       (f m)
+       m))
 
  (define-monad
    <writer>
