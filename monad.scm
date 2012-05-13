@@ -104,7 +104,7 @@
  (define-monad
    <list>
    (lambda (a) (list a))
-   (lambda (a f) (concatenate! (map! f a))))
+   (lambda (a f) (concatenate (map f a))))
 
  (define-monad
    <state>
@@ -133,7 +133,7 @@
    (do-using
     <state>
     (s <- (: get))
-    (: put (f s))))
+    (:! put (f s))))
 
  (define-monad
    <reader>
@@ -181,33 +181,30 @@
    <writer>
    (lambda (a) `(,a . ()))
    (lambda (a f)
-     (let* ((b (f (car a)))
-            (w* (if (list? (cdr b)) (cdr b) (list (cdr b))))
-            (aw* (if (list? (cdr a)) (cdr a) (list (cdr a)))))
-       `(,(car b) . ,(append aw* w*)))))
+     (let* ((b (f (car a))))
+       `(,(car b) . ,(append (cdr a) (cdr b))))))
 
  (define (<writer>-tell v)
    `(() . ,v))
  
- (define (<writer>-listen a) 
+ (define (<writer>-listen a)
    `(,a . ,(cdr a)))
 
- (define (<writer>-pass a) ; expects ((v . f) . w)
-   (let ((v (caar a))
-         (f (cdar a))
-         (w (cdr a)))
-     (begin
-       (f w)
-       `(() . ,v))))
+ (define (<writer>-listens f m)
+   (do <writer>
+     (pair <- m)
+     (return `(,(car pair) . ,(f (cdr pair))))))
 
- (define (<writer>-listens f a)
-   (do-using <writer>
-             (w <- (:! listen a))
-             (return `(,(car w) . ,(f (cdr w))))))
+ (define (<writer>-pass m) ; expects ((v . f) . w)
+   (let* ((p (car m))
+          (a (car p))
+          (f (cdr p))
+          (w (cdr m)))
+     `(,a . ,(f w))))
 
- (define (<writer>-censor f a)
+ (define (<writer>-censor f m)
    (<writer>-pass 
     (do-using <writer>
-              (w <- a)
-              (return `(,w . ,f)))))
+              (a <- m)
+              (return `(,a . ,f)))))
 )

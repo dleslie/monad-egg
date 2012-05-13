@@ -111,7 +111,78 @@ Within do-using the following will be defined:
 | return   | Maps to unit                                                      |
 | fail     | Maps to fail                                                      |
 | :        | Shorthand for calling monad-specific functions, details follow    |
+| :!       | Shorthand for calling monad-specific functions, details follow    |
 | <-       | Shorthand for binding a symbol to a monadic value, details follow |
+
+**** :! Keyword
+
+The :! keyword is used as a shortcut for referencing monad-specific procedures which are prefixed with the current monad name.
+
+For example:
+
+: (do-using <writer> (:! tell 1))
+
+Is the same as:
+
+: (do-using <writer> (<writer>-tell 1))
+
+**** : Keyword
+
+The : keyword is like :!, except that it references the procedure without executing it.
+
+For example:
+
+: (do-using <state> (x <- (: get)) (return x))
+
+Is the same as:
+
+: (do-using <writer> (x <- <state>-get) (return x))
+
+**** <- Keyword
+
+The <- keyword is used as a shortcut for binding a value within a monad.
+
+For example:
+
+: (do-using <maybe>
+:   (x <- (return 1))
+:   x)
+
+Is the same as:
+
+: (do-using <maybe>
+:   (>>= (return 1)
+:     (lambda (x)
+:       (do-using <maybe>
+:         x))))
+
+**** General Example
+
+A simple example:
+
+: (do-using <maybe>
+:    (x <- (return <maybe> 1))
+:    x)
+: 
+: ;Returns:
+: (Just 1)
+
+Or, a more complex example:
+
+: (do-using <maybe> 
+:           (x <- (return 1))
+:           (if (eq? 2 (cadr x))
+:               (return 'Banana)
+:               (fail))
+:           (y <- (return 'Apple))
+:           y)
+:
+: ;Returns:
+: Nothing
+
+*** (do monad [body ...])
+
+Alias for (do-using monad [body ...]).
 
 **** :! Keyword
 
@@ -198,12 +269,29 @@ Simple monads pre-defined by this egg.
 :    (case-lambda (() 'Nothing)
 :                 ((_ . _) 'Nothing)))
 
+*** Example
+
+: > (do <maybe> 
+:       (if #t 
+:           'Nothing 
+:           '(Just First))
+:       '(Just Second))
+: Nothing
+
 ** List
 
 :  (define-monad
 :    <list>
 :    (lambda (a) (list a))
 :    (lambda (a f) (concatenate! (map! f a))))
+
+*** Example
+
+: #;> (do <list> 
+:         (x <- '(1 2 3))
+:         (y <- '(a b c))
+:         (return `(,x ,y)))
+: ((1 a) (1 b) (1 c) (2 a) (2 b) (2 c) (3 a) (3 b) (3 c))
 
 ** State
 
@@ -217,6 +305,65 @@ Simple monads pre-defined by this egg.
 :               (s^ (cdr p)))
 :          ((f a^) s^)))))
 
+*** Extra Methods
+
+**** <state>-get
+
+<procedure>(<state>-get s)</procedure>
+
+Retrieves the current state from a given <state> monad.
+
+***** Example
+
+: #;> ((do <state> 
+:          (x <- (: get))
+:          (return x))
+:      "Hi!")
+: ("Hi!" . "Hi!")
+
+**** <state>-gets
+
+<procedure>(<state>-gets f)</procedure>
+
+Creates a monad that retrieves a given state after filtering it with the function provided.
+
+***** Example 
+
+: #;> ((do <state> 
+:          (x <- (:! gets (lambda (s) (+ s 1))))
+:          (return x))
+:      1)
+: (2 . 1)
+
+**** <state>-modify
+
+<procedure>(<state>-modify f)</procedure>
+
+Creates a monad that modifies the current state with a given function.
+
+***** Example
+
+: #;> ((do <state> 
+:          (:! modify (lambda (v) 
+:                       (display (format "Received: ~S\n" v))
+:                       (+ v 1))))
+:      1)
+: Received: 1
+: (() . 2)
+
+**** <state>-put
+
+<procedure>(<state>-put v)</procedure>
+
+Creates a monad that forces a value into the current <state> monad.
+
+***** Example
+
+: #;> ((do <state> 
+:          (:! put 1))
+:      2)
+: (() . 1)
+
 ** Reader
 
 :  (define-monad
@@ -224,12 +371,68 @@ Simple monads pre-defined by this egg.
 :    (lambda (a) (lambda (v) a))
 :    (lambda (a f) (lambda (v) ((f (a v)) v))))
 
+*** Extra Methods
+
+**** <reader>-ask
+
+<procedure>(<reader>-ask m)</procedure>
+
+Extracts the current value from the current reader monad.
+
+***** Example
+
+: #;> ((do <reader> 
+:          (x <- (: ask))
+:          (return (+ x 1)))
+:      1)
+: 2
+
+**** <reader>-asks
+
+<procedure>(<reader>-asks f)</procedure>
+
+Creates a monad that filters the current value in the reader monad with the given function.
+
+***** Example
+
+: #;> ((do <reader> 
+:          (:! asks (lambda (v) 
+:                     (+ v 1))))
+:      1)
+: 2
+
+
+**** <reader>-local
+
+<procedure>(<reader>-local f m)</procedure>
+
+Creats a monad that first filters the current reader monad value with the provided function, then passes that filtered value to the provided reader monad.
+
+***** Example
+
+: #;> ((do <reader> 
+:          (:! local 
+:              (lambda (v) (+ v 1))
+:              (do <reader> 
+:                  (x <- (: ask))
+:                  (return x))))
+:      1)
+: 2
+
 ** CPS
 
 :  (define-monad
 :    <cps>
 :    (lambda (a) (lambda (k) (k a)))
 :    (lambda (a f) (lambda (k) (a (lambda (a^) (let ((b (f a^))) (b k)))))))
+
+*** Extra Methods
+
+**** <cps>-call/cc
+
+<procedure>(<cps>-call/cc f)</procedre>
+
+Creates a monad that, when given a continuation, passes a monad to the provided function that applies the continuation to its input; then applies the continuation to the output of that function.
 
 ** Exception
 
@@ -240,6 +443,37 @@ Simple monads pre-defined by this egg.
 :    (case-lambda (() `(failure))
 :                 ((a . b) `(failure ,a . ,b))))
 
+*** Extra Methods
+
+**** <exception>-throw
+
+<procedure>(<exception-throw e)</procedure>
+
+Synonym for <exception>-fail.
+
+Example:
+
+: #;> (do <exception> (:! throw "Error! No more cheerios!"))
+: (failure "Error! No more cheerios!")
+
+**** <exception>-catch
+
+<procedure>(<exception>-catch m f)</procedure>
+
+Creates a monad that examines an exception monad and passes the value to the provided function if it had failed.
+
+***** Example
+
+: #;> (define some-monad 
+:             (do <exception> 
+:                 (:! throw "An error happened! Oh no!")))
+: #;> (do <exception> 
+:         (:! catch some-monad 
+:                   (lambda (m) 
+:                     (display (format "Caught an exception: ~S" 
+:                                      (cadr m))))))
+: Caught an exception: "An error happened! Oh no!"
+
 ** Writer
 
 :  (define-monad
@@ -248,6 +482,39 @@ Simple monads pre-defined by this egg.
 :    (lambda (a f)
 :      (let ((b (f (car a))))
 :        `(,(car b) . ,(append (cdr a) (cdr b))))))
+
+*** Extra Methods
+
+**** <writer>-tell
+
+<procedure>(<writer>-tell v)</procedure>
+
+Creates a monad where the provided value is wrapped in a <writer>.
+
+***** Example
+
+: #;> (do <writer> (:! tell '(1 2 3)))
+: (() 1 2 3)
+
+**** <writer>-listen
+
+<procedure>(<writer>-listen a)</procedure>
+
+Creates a monad where the value has been extracted out of the writer.
+
+***** Example
+
+: #;> (do <writer> 
+:         (x <- (:! listen 
+:                   (:! tell '(foo))))
+:         (return x))
+: ((() foo) foo)
+
+**** <writer>-pass
+
+**** <writer>-listens
+
+**** <writer>-censor
 
 * Version History
 
