@@ -510,11 +510,49 @@ Creates a monad where the value has been extracted out of the writer.
 :         (return x))
 : ((() foo) foo)
 
-**** <writer>-pass
-
 **** <writer>-listens
 
+<procedure>(<writer>-listens f m)</procedure>
+
+Creates a monad that is the outcome of applying the provided function on the given writer monad.
+
+***** Example
+
+: #;> (do <writer> 
+:         (x <- (return (:! tell '(1 2 3))))
+:         (:! listens 
+:             (lambda (l) (map (lambda (v) (+ v 1)) l))
+:             (return x)))
+: ((() 2 3 4))
+
+**** <writer>-pass
+
+<procedure>(<writer>-pass m)</procedure>
+
+Creates a monad that is the outcome of mutating the provided writer monad with a given function. Expects to be provided a monad of the form: ((value . function) . rest-of-writer)
+
+Not generally used much except by those that know what they're doing, you're likely after <writer>-censor for most cases.
+
+***** Example
+
+: #;> (do <writer> 
+:         (x <- (:! listen 
+:                   `((() . ,(lambda (l) 
+:                              (map (lambda (v) (+ v 1)) l)))
+:                     . (1 2 3))))
+:         (:! pass x))
+: (() 1 2 3 2 3 4)
+
 **** <writer>-censor
+
+<procedure>(<writer>-censor f m)</procedure>
+
+Creates a monad resulting from the application of the provided function on the given monad, censoring the values that were in the given monad.
+
+: #;> (do <writer> 
+:         (:! censor (lambda (l) (map (lambda (v) (+ v 1)) l))
+:                    (:! tell '(1 2 3))))
+: (() 2 3 4)
 
 * Version History
 

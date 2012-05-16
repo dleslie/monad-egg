@@ -8,7 +8,7 @@
  '("monad.so" "monad.import.so")
  '((syntax)
    (import-only)
-   (version 2.5)
+   (version 2.6)
    (static "monad.o")))
 
 
