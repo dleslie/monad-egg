@@ -29,11 +29,11 @@
        `(,(r 'let) ((>>= ,(symbol-append name '-bind))
                     (return ,(symbol-append name '-unit))
                     (fail ,(symbol-append name '-fail)))
-         (define-syntax :
+         (define-syntax /m
            (lambda (f r c)
              (let* ((f* (symbol-append ',name '- (cadr f))))
                f*)))
-          (define-syntax :!
+          (define-syntax /m!
             (lambda (f r c)
               (let* ((f* (symbol-append ',name- (cadr f)))
                      (rest (cddr f)))
@@ -66,11 +66,11 @@
           (define return ,unitf)
           (define fail ,failf)
           (define >>= ,bindf)
-          (define-syntax :
+          (define-syntax /m
             (lambda (f r c)
               (let* ((f* (symbol-append ',name- (cadr f))))
                 f*)))
-          (define-syntax :!
+          (define-syntax /m!
             (lambda (f r c)
               (let* ((f* (symbol-append ',name- (cadr f)))
                      (rest (cddr f)))
@@ -126,14 +126,14 @@
  (define (<state>-gets f)
    (do-using 
     <state>
-    (s <- (: get))
+    (s <- (/m get))
     (return (f s))))
 
  (define (<state>-modify f)
    (do-using
     <state>
-    (s <- (: get))
-    (:! put (f s))))
+    (s <- (/m get))
+    (/m! put (f s))))
 
  (define-monad
    <reader>
@@ -144,7 +144,7 @@
 
  (define (<reader>-asks f)
    (do-using <reader>
-             (x <- (: ask))
+             (x <- (/m ask))
              (return (f x))))
 
  (define (<reader>-local f r)
@@ -170,7 +170,7 @@
  (define (<exception>-throw e)
    (do-using 
     <exception>
-    (:! fail e)))
+    (/m! fail e)))
 
  (define (<exception>-catch m f)
    (if (eq? (car m) 'failure)

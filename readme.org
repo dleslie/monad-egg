@@ -110,29 +110,29 @@ Within do-using the following will be defined:
 | >>=      | Maps to bind                                                      |
 | return   | Maps to unit                                                      |
 | fail     | Maps to fail                                                      |
-| :        | Shorthand for calling monad-specific functions, details follow    |
-| :!       | Shorthand for calling monad-specific functions, details follow    |
+| /m        | Shorthand for calling monad-specific functions, details follow    |
+| /m!       | Shorthand for calling monad-specific functions, details follow    |
 | <-       | Shorthand for binding a symbol to a monadic value, details follow |
 
-**** :! Keyword
+**** /m! Keyword
 
-The :! keyword is used as a shortcut for referencing monad-specific procedures which are prefixed with the current monad name.
+The /m! keyword is used as a shortcut for referencing monad-specific procedures which are prefixed with the current monad name.
 
 For example:
 
-: (do-using <writer> (:! tell 1))
+: (do-using <writer> (/m! tell 1))
 
 Is the same as:
 
 : (do-using <writer> (<writer>-tell 1))
 
-**** : Keyword
+**** /m Keyword
 
-The : keyword is like :!, except that it references the procedure without executing it.
+The /m keyword is like /m!, except that it references the procedure without executing it.
 
 For example:
 
-: (do-using <state> (x <- (: get)) (return x))
+: (do-using <state> (x <- (/m get)) (return x))
 
 Is the same as:
 
@@ -184,25 +184,25 @@ Or, a more complex example:
 
 Alias for (do-using monad [body ...]).
 
-**** :! Keyword
+**** /m! Keyword
 
-The :! keyword is used as a shortcut for referencing monad-specific procedures which are prefixed with the current monad name.
+The /m! keyword is used as a shortcut for referencing monad-specific procedures which are prefixed with the current monad name.
 
 For example:
 
-: (do-using <writer> (:! tell 1))
+: (do-using <writer> (/m! tell 1))
 
 Is the same as:
 
 : (do-using <writer> (<writer>-tell 1))
 
-**** : Keyword
+**** /m Keyword
 
-The : keyword is like :!, except that it references the procedure without executing it.
+The /m keyword is like /m!, except that it references the procedure without executing it.
 
 For example:
 
-: (do-using <state> (x <- (: get)) (return x))
+: (do-using <state> (x <- (/m get)) (return x))
 
 Is the same as:
 
@@ -316,7 +316,7 @@ Retrieves the current state from a given <state> monad.
 ***** Example
 
 : #;> ((do <state> 
-:          (x <- (: get))
+:          (x <- (/m get))
 :          (return x))
 :      "Hi!")
 : ("Hi!" . "Hi!")
@@ -330,7 +330,7 @@ Creates a monad that retrieves a given state after filtering it with the functio
 ***** Example 
 
 : #;> ((do <state> 
-:          (x <- (:! gets (lambda (s) (+ s 1))))
+:          (x <- (/m! gets (lambda (s) (+ s 1))))
 :          (return x))
 :      1)
 : (2 . 1)
@@ -344,7 +344,7 @@ Creates a monad that modifies the current state with a given function.
 ***** Example
 
 : #;> ((do <state> 
-:          (:! modify (lambda (v) 
+:          (/m! modify (lambda (v) 
 :                       (display (format "Received: ~S\n" v))
 :                       (+ v 1))))
 :      1)
@@ -360,7 +360,7 @@ Creates a monad that forces a value into the current <state> monad.
 ***** Example
 
 : #;> ((do <state> 
-:          (:! put 1))
+:          (/m! put 1))
 :      2)
 : (() . 1)
 
@@ -382,7 +382,7 @@ Extracts the current value from the current reader monad.
 ***** Example
 
 : #;> ((do <reader> 
-:          (x <- (: ask))
+:          (x <- (/m ask))
 :          (return (+ x 1)))
 :      1)
 : 2
@@ -396,7 +396,7 @@ Creates a monad that filters the current value in the reader monad with the give
 ***** Example
 
 : #;> ((do <reader> 
-:          (:! asks (lambda (v) 
+:          (/m! asks (lambda (v) 
 :                     (+ v 1))))
 :      1)
 : 2
@@ -411,10 +411,10 @@ Creats a monad that first filters the current reader monad value with the provid
 ***** Example
 
 : #;> ((do <reader> 
-:          (:! local 
+:          (/m! local 
 :              (lambda (v) (+ v 1))
 :              (do <reader> 
-:                  (x <- (: ask))
+:                  (x <- (/m ask))
 :                  (return x))))
 :      1)
 : 2
@@ -453,7 +453,7 @@ Synonym for <exception>-fail.
 
 Example:
 
-: #;> (do <exception> (:! throw "Error! No more cheerios!"))
+: #;> (do <exception> (/m! throw "Error! No more cheerios!"))
 : (failure "Error! No more cheerios!")
 
 **** <exception>-catch
@@ -466,9 +466,9 @@ Creates a monad that examines an exception monad and passes the value to the pro
 
 : #;> (define some-monad 
 :             (do <exception> 
-:                 (:! throw "An error happened! Oh no!")))
+:                 (/m! throw "An error happened! Oh no!")))
 : #;> (do <exception> 
-:         (:! catch some-monad 
+:         (/m! catch some-monad 
 :                   (lambda (m) 
 :                     (display (format "Caught an exception: ~S" 
 :                                      (cadr m))))))
@@ -493,7 +493,7 @@ Creates a monad where the provided value is wrapped in a <writer>.
 
 ***** Example
 
-: #;> (do <writer> (:! tell '(1 2 3)))
+: #;> (do <writer> (/m! tell '(1 2 3)))
 : (() 1 2 3)
 
 **** <writer>-listen
@@ -505,8 +505,8 @@ Creates a monad where the value has been extracted out of the writer.
 ***** Example
 
 : #;> (do <writer> 
-:         (x <- (:! listen 
-:                   (:! tell '(foo))))
+:         (x <- (/m! listen 
+:                   (/m! tell '(foo))))
 :         (return x))
 : ((() foo) foo)
 
@@ -519,8 +519,8 @@ Creates a monad that is the outcome of applying the provided function on the giv
 ***** Example
 
 : #;> (do <writer> 
-:         (x <- (return (:! tell '(1 2 3))))
-:         (:! listens 
+:         (x <- (return (/m! tell '(1 2 3))))
+:         (/m! listens 
 :             (lambda (l) (map (lambda (v) (+ v 1)) l))
 :             (return x)))
 : ((() 2 3 4))
@@ -536,11 +536,11 @@ Not generally used much except by those that know what they're doing, you're lik
 ***** Example
 
 : #;> (do <writer> 
-:         (x <- (:! listen 
+:         (x <- (/m! listen 
 :                   `((() . ,(lambda (l) 
 :                              (map (lambda (v) (+ v 1)) l)))
 :                     . (1 2 3))))
-:         (:! pass x))
+:         (/m! pass x))
 : (() 1 2 3 2 3 4)
 
 **** <writer>-censor
@@ -550,14 +550,15 @@ Not generally used much except by those that know what they're doing, you're lik
 Creates a monad resulting from the application of the provided function on the given monad, censoring the values that were in the given monad.
 
 : #;> (do <writer> 
-:         (:! censor (lambda (l) (map (lambda (v) (+ v 1)) l))
-:                    (:! tell '(1 2 3))))
+:         (/m! censor (lambda (l) (map (lambda (v) (+ v 1)) l))
+:                    (/m! tell '(1 2 3))))
 : (() 2 3 4)
 
 * Version History
 
 | Version | Notes                                                                                                                                                                                                                                                            |
 |---------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|     3.0 | Renamed :! to /m! and : to /m due to : already being used for explicit specialization (oops)                                                                                                                                                                     |
 |     2.4 | Added :! keyword, fixed : keyword                                                                                                                                                                                                                                |
 |     2.3 | Added fail function for all monads which defaults to assert, but is definied appropriately for the <exception> and <maybe> monads. Added : keyword to using and do-using. Added >>=, return and fail bindings to do-using syntax.                                |
 |     2.2 | Added failure states for monads                                                                                                                                                                                                                                  |
