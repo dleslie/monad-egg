@@ -35,7 +35,7 @@
                f*)))
           (define-syntax /m!
             (lambda (f r c)
-              (let* ((f* (symbol-append ',name- (cadr f)))
+              (let* ((f* (symbol-append ',name '- (cadr f)))
                      (rest (cddr f)))
                 `(,f* . ,rest))))
          ,@body))))
@@ -68,11 +68,11 @@
           (define >>= ,bindf)
           (define-syntax /m
             (lambda (f r c)
-              (let* ((f* (symbol-append ',name- (cadr f))))
+              (let* ((f* (symbol-append ',name '- (cadr f))))
                 f*)))
           (define-syntax /m!
             (lambda (f r c)
-              (let* ((f* (symbol-append ',name- (cadr f)))
+              (let* ((f* (symbol-append ',name '- (cadr f)))
                      (rest (cddr f)))
                 `(,f* . ,rest))))
           (define-syntax bound-do
