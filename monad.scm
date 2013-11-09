@@ -56,12 +56,12 @@
 
  (define-syntax do-using 
    (lambda (f r c)
-     (letrec ((name (cadr f))
-              (body (cddr f))
-              (bindf (symbol-append name '-bind))
-              (unitf (symbol-append name '-unit))
-              (failf (symbol-append name '-fail))
-              (name- (symbol-append name '-)))
+     (let* ((name (cadr f))
+            (body (cddr f))
+            (bindf (symbol-append name '-bind))
+            (unitf (symbol-append name '-unit))
+            (failf (symbol-append name '-fail))
+            (name- (symbol-append name '-)))
        `((,(r 'lambda) ()
           (define return ,unitf)
           (define fail ,failf)
