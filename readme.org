@@ -136,7 +136,7 @@ For example:
 
 Is the same as:
 
-: (do-using <stater> (x <- <state>-get) (return x))
+: (do-using <state> (x <- <state>-get) (return x))
 
 **** <- Keyword
 
