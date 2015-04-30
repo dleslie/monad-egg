@@ -1,15 +1,13 @@
 ;;;; monad.setup -*- Scheme -*-
 
-(compile -s -O3 -d0 monad.scm -j monad)
-(compile -s -O3 -d0 monad.import.scm)
+(compile -s -d2 monad.scm -j funky)
+(compile -s -d2 monad.import.scm)
 
 (install-extension
  'monad
  '("monad.so" "monad.import.so")
  '((syntax)
-   (import-only)
-   (version 3.2)
-   (static "monad.o")))
+   (version 3.2)))
 
 
 
