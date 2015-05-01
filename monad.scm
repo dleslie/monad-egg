@@ -1,4 +1,4 @@
-(module monad-core (%build-for-monad %let-alias %define-monad define-monad using do do-using)
+(module monad-core (%build-for-monad %let-alias define-monad using do do-using)
   (import scheme chicken extras srfi-1)
 
   (define-syntax %build-for-monad
@@ -60,14 +60,21 @@
 	   
   	   ,@body)))))
   
-  (define-syntax do-using
+  (define-syntax %unroll-do-using
     (syntax-rules (<-)
       ((_ monad expr)
-       (using monad expr))
+       expr)
       ((_ monad (var <- expr) ..)
-       ((using monad ((%build-for-monad monad bind) expr (lambda (var) (do-using monad ..))))))
+       ((%build-for-monad monad bind) expr (lambda (var) (%unroll-do-using monad ..))))
       ((_ monad expr ..)
-       ((using monad ((%build-for-monad monad bind) expr (lambda (_) (do-using monad ..))))))))
+       ((%build-for-monad monad bind) expr (lambda (_) (%unroll-do-using monad ..))))))
+
+  (define-syntax do-using
+    (syntax-rules ()
+      ((_ monad expr)
+       (using monad expr))
+      ((_ monad expr ..)
+       (using monad (%unroll-do-using monad expr ..)))))
   
   (define-syntax do
     (syntax-rules ()
