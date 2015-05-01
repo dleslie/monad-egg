@@ -15,7 +15,10 @@
 	      (expression (cddr expression))
 	      (unit-function (car expression))
 	      (bind-function (cadr expression))
-	      (fail-function (caddr expression)))
+	      (fail-function (caddr expression))
+	      (fail-function (if fail-function fail-function
+				 `(case-lambda (() (error (format "Failure in evaluating ~S monad." ',monad)))
+					       ((_ . _) (error (format "Failure in evaluating ~S monad." ',monad)))))))
 	 `(begin
 	    (define ,(inject (symbol-append (strip-syntax monad) '-unit))
 	      ,unit-function)
@@ -36,9 +39,7 @@
       ((_ monad unit-function bind-function fail-function)
        (%define-monad monad unit-function bind-function fail-function))
       ((_ monad unit bind)
-       (define-monad monad unit bind
-	 (case-lambda (() (error "Failure in evaluating monad."))
-		      ((_ . _) (error "Failure in evaluating monad.")))))))
+       (%define-monad monad unit bind #f))))
 
   (define-syntax using
     (er-macro-transformer
@@ -46,17 +47,17 @@
        (let* ((monad (cadr e))
   	      (body (cddr e)))
   	 `(%let-alias
-  	   ((>>= (%build-for-monad ,monad bind))
-  	    (return (%build-for-monad ,monad unit))
-  	    (fail (%build-for-monad ,monad fail)))
+  	   ((>>= (%build-for-monad ,(r monad) bind))
+  	    (return (%build-for-monad ,(r monad) unit))
+  	    (fail (%build-for-monad ,(r monad) fail)))
 
   	   (define-syntax /m
   	     (syntax-rules ()
-  	       ((_ func) (%build-for-monad ,monad func))))
+  	       ((_ func) (%build-for-monad ,(r monad) func))))
 
   	   (define-syntax /m!
   	     (syntax-rules ()
-  	       ((_ func . args) (apply (%build-for-monad ,monad func) args))))
+  	       ((_ func . args) (apply (%build-for-monad ,(r monad) func) args))))
 	   
   	   ,@body)))))
   
