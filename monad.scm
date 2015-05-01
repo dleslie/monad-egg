@@ -47,17 +47,17 @@
        (let* ((monad (cadr e))
   	      (body (cddr e)))
   	 `(%let-alias
-  	   ((>>= (%build-for-monad ,(r monad) bind))
-  	    (return (%build-for-monad ,(r monad) unit))
-  	    (fail (%build-for-monad ,(r monad) fail)))
+  	   ((>>= (%build-for-monad monad bind))
+  	    (return (%build-for-monad monad unit))
+  	    (fail (%build-for-monad monad fail)))
 
   	   (define-syntax /m
   	     (syntax-rules ()
-  	       ((_ func) (%build-for-monad ,(r monad) func))))
+  	       ((_ func) (%build-for-monad monad func))))
 
   	   (define-syntax /m!
   	     (syntax-rules ()
-  	       ((_ func . args) (apply (%build-for-monad ,(r monad) func) args))))
+  	       ((_ func . args) (apply (%build-for-monad monad func) args))))
 	   
   	   ,@body)))))
   
