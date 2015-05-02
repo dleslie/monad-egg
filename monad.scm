@@ -63,19 +63,21 @@
   
   (define-syntax %unroll-do-using
     (syntax-rules (<-)
+      ((_ monad)
+       (begin))
       ((_ monad expr)
        expr)
-      ((_ monad (var <- expr) ..)
-       ((%build-for-monad monad bind) expr (lambda (var) (%unroll-do-using monad ..))))
-      ((_ monad expr ..)
-       ((%build-for-monad monad bind) expr (lambda (_) (%unroll-do-using monad ..))))))
+      ((_ monad (var <- expr) . rest)
+       ((%build-for-monad monad bind) expr (lambda (var) (%unroll-do-using monad . rest))))
+      ((_ monad expr . rest)
+       ((%build-for-monad monad bind) expr (lambda (_) (%unroll-do-using monad . rest))))))
 
   (define-syntax do-using
     (syntax-rules ()
       ((_ monad expr)
        (using monad expr))
-      ((_ monad expr ..)
-       (using monad (%unroll-do-using monad expr ..)))))
+      ((_ monad expr ...)
+       (using monad (%unroll-do-using monad expr ...)))))
   
   (define-syntax do
     (syntax-rules ()
