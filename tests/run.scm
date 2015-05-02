@@ -1,11 +1,10 @@
 (use utils)
 (use test)
 
-(load "tests.scm")
+(test-group "CSC"
+            (compile-file "tests.scm")
+            (run-tests))
 
-(test-group "CSI" (run-tests))
-
-(define (run-tests) (error "Failed to compile/load tests"))
-(compile-file "tests.scm")
-
-(test-group "CSC" (run-tests))
+(test-group "CSI"
+            (load "tests.scm")
+            (run-tests))

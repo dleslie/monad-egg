@@ -6,7 +6,7 @@
      (lambda (expression inject compare)
        (let ((monad (cadr expression))
 	     (func (caddr expression)))
-	 (inject (symbol-append (strip-syntax monad) '- (strip-syntax func)))))))
+         (inject (symbol-append (strip-syntax monad) '- (strip-syntax func)))))))
 
   (define-syntax %define-monad
     (er-macro-transformer
@@ -57,9 +57,9 @@
 
   	   (define-syntax /m!
   	     (syntax-rules ()
-  	       ((_ func . args) (apply (%build-for-monad ,monad func) args))))
-	   
-  	   ,@body)))))
+  	       ((_ func . body) ((%build-for-monad ,monad func) . body))))
+             
+           ,@body)))))
   
   (define-syntax %unroll-do-using
     (syntax-rules (<-)
