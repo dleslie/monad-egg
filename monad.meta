@@ -4,4 +4,5 @@
  (category data)
  (author "Daniel J. Leslie")
  (synopsis "Monads")
+ (test-depends test)
  (doc-from-wiki))
