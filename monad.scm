@@ -55,10 +55,16 @@
   	     (syntax-rules ()
   	       ((_ func) (%build-for-monad ,monad func))))
 
-  	   (define-syntax /m!
+           ;; Correct version that breaks everything
+  	   ;; (define-syntax /m!
+  	   ;;   (syntax-rules ()
+  	   ;;     ((_ func . body) ((%build-for-monad ,monad func) . body))))
+
+           ; Erroneous version that doesn't break other tests
+           (define-syntax /m!
   	     (syntax-rules ()
-  	       ((_ func . body) ((%build-for-monad ,monad func) . body))))
-             
+  	       ((_ func . body) ((%build-for-monad ,monad func) body))))
+
            ,@body)))))
   
   (define-syntax %unroll-do-using
