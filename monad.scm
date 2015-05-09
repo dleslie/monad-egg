@@ -65,32 +65,6 @@
       (r (f a))))
 
   (define-monad
-    <cps>
-    (lambda (a) (lambda (k) (k a)))
-    (lambda (a f) (lambda (k) (a (lambda (a^) (let ((b (f a^))) (b k)))))))
-
-  (define (<cps>-call/cc f)
-    (lambda (c)
-      ((f [lambda (a) (lambda () (c a))]) c)))
-
-  (define-monad
-    <exception>
-    (lambda (a) `(success ,a))
-    (lambda (a f) (if (eq? (car a) 'success) (f (cadr a)) a))
-    (case-lambda (() `(failure))
-		 ((a . b) `(failure ,a . ,b))))
-
-  (define (<exception>-throw e)
-    (do-using 
-     <exception>
-     (fail e)))
-
-  (define (<exception>-catch m f)
-    (if (eq? (car m) 'failure)
-	(f m)
-	m))
-
-  (define-monad
     <writer>
     (lambda (a) `(,a . ()))
     (lambda (a f)
@@ -105,7 +79,7 @@
 
   (define (<writer>-listens f m)
     (do <writer>
-	(pair <- m)
+      (pair <- (/m! listen m))
       (return `(,(car pair) . ,(f (cdr pair))))))
 
   (define (<writer>-pass m) ; expects ((v . f) . w)

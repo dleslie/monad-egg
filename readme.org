@@ -419,61 +419,6 @@ Creats a monad that first filters the current reader monad value with the provid
 :      1)
 : 2
 
-** CPS
-
-:  (define-monad
-:    <cps>
-:    (lambda (a) (lambda (k) (k a)))
-:    (lambda (a f) (lambda (k) (a (lambda (a^) (let ((b (f a^))) (b k)))))))
-
-*** Extra Methods
-
-**** <cps>-call/cc
-
-<procedure>(<cps>-call/cc f)</procedre>
-
-Creates a monad that, when given a continuation, passes a monad to the provided function that applies the continuation to its input; then applies the continuation to the output of that function.
-
-** Exception
-
-:  (define-monad
-:    <exception>
-:    (lambda (a) `(success ,a))
-:    (lambda (a f) (if (eq? (car a) 'success) (f (cadr a)) a))
-:    (case-lambda (() `(failure))
-:                 ((a . b) `(failure ,a . ,b))))
-
-*** Extra Methods
-
-**** <exception>-throw
-
-<procedure>(<exception-throw e)</procedure>
-
-Synonym for <exception>-fail.
-
-Example:
-
-: #;> (do <exception> (/m! throw "Error! No more cheerios!"))
-: (failure "Error! No more cheerios!")
-
-**** <exception>-catch
-
-<procedure>(<exception>-catch m f)</procedure>
-
-Creates a monad that examines an exception monad and passes the value to the provided function if it had failed.
-
-***** Example
-
-: #;> (define some-monad 
-:             (do <exception> 
-:                 (/m! throw "An error happened! Oh no!")))
-: #;> (do <exception> 
-:         (/m! catch some-monad 
-:                   (lambda (m) 
-:                     (display (format "Caught an exception: ~S" 
-:                                      (cadr m))))))
-: Caught an exception: "An error happened! Oh no!"
-
 ** Writer
 
 :  (define-monad
@@ -505,10 +450,9 @@ Creates a monad where the value has been extracted out of the writer.
 ***** Example
 
 : #;> (do <writer> 
-:         (x <- (/m! listen 
-:                   (/m! tell '(foo))))
+:         (x <- (/m! listen (do <writer> (/m! listen (do <writer> (return 'hello))))))
 :         (return x))
-: ((() foo) foo)
+: (hello)
 
 **** <writer>-listens
 
@@ -522,8 +466,8 @@ Creates a monad that is the outcome of applying the provided function on the giv
 :         (x <- (return (/m! tell '(1 2 3))))
 :         (/m! listens 
 :             (lambda (l) (map (lambda (v) (+ v 1)) l))
-:             (return x)))
-: ((() 2 3 4))
+:             x))
+: ((() 2 3 4) 1 2 3)
 
 **** <writer>-pass
 
@@ -578,7 +522,9 @@ The github repository is at: https://github.com/dleslie/monad-egg
 Original Egg By Daniel J. Leslie
 dan@ironoxide.ca
 
-State, Reader, Writer, CPS and Exception monads contributed by Cameron Swords.
+Additional Contributors:
+Cameron Swords.
+Peter Bex
 
 * License
 
