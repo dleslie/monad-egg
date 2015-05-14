@@ -66,32 +66,32 @@
 
   (define-monad
     <writer>
-    (lambda (a) `(,a . ()))
+    (lambda (a) (cons a '()))
     (lambda (a f)
       (let* ((b (f (car a))))
-	`(,(car b) . ,(append (cdr a) (cdr b))))))
+	(cons (car b) (append (cdr a) (cdr b))))))
 
-  (define (<writer>-tell v)
-    `(() . ,v))
+  (define (<writer>-tell . v)
+    (cons '() v))
   
   (define (<writer>-listen a)
-    `(,a . ,(cdr a)))
+    (cons a (cdr a)))
 
   (define (<writer>-listens f m)
     (do <writer>
       (pair <- (/m! listen m))
-      (return `(,(car pair) . ,(f (cdr pair))))))
+      (return (cons (car pair) (f (cdr pair))))))
 
-  (define (<writer>-pass m) ; expects ((v . f) . w)
+  (define (<writer>-pass m) ; expects ((a f) w)
     (let* ((p (car m))
 	   (a (car p))
-	   (f (cdr p))
+	   (f (cadr p))
 	   (w (cdr m)))
-      `(,a . ,(f w))))
+      (cons a (f w))))
 
   (define (<writer>-censor f m)
     (<writer>-pass 
      (do-using <writer>
-	       (a <- m)
-	       (return `(,a . ,f)))))
+               (apply (/m tell) (cdr m))
+               (return (/m! tell f)))))
   )
