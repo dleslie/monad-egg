@@ -423,23 +423,26 @@ Creats a monad that first filters the current reader monad value with the provid
 
 :  (define-monad
 :    <writer>
-:    (lambda (a) `(,a . ()))
+:    (lambda (a) (cons a '()))
 :    (lambda (a f)
-:      (let ((b (f (car a))))
-:        `(,(car b) . ,(append (cdr a) (cdr b))))))
+:      (let* ((b (f (car a))))
+:	(cons (car b) (append (cdr a) (cdr b))))))
 
 *** Extra Methods
 
 **** <writer>-tell
 
-<procedure>(<writer>-tell v)</procedure>
+<procedure>(<writer>-tell . v)</procedure>
 
 Creates a monad where the provided value is wrapped in a <writer>.
 
 ***** Example
 
-: #;> (do <writer> (/m! tell '(1 2 3)))
-: (() 1 2 3)
+: #;> (do/m <writer>
+:           (x <- (return 'hello))
+:           (/m! tell x)
+:           (/m! tell 'world))
+: (() hello world)
 
 **** <writer>-listen
 
@@ -449,10 +452,15 @@ Creates a monad where the value has been extracted out of the writer.
 
 ***** Example
 
-: #;> (do <writer> 
-:         (x <- (/m! listen (do <writer> (/m! listen (do <writer> (return 'hello))))))
-:         (return x))
-: (hello)
+: #;> (let ((other-writer
+:           (do/m <writer>
+:                 (/m! tell 'hello)
+:                 (/m! tell 'test)
+:                 (/m! tell 'world))))
+:      (do/m <writer>
+:            (x <- (/m! listen other-writer))
+:            (return x)))
+: ((() hello test world) hello test world)
 
 **** <writer>-listens
 
@@ -462,12 +470,17 @@ Creates a monad that is the outcome of applying the provided function on the giv
 
 ***** Example
 
-: #;> (do <writer> 
-:         (x <- (return (/m! tell '(1 2 3))))
-:         (/m! listens 
-:             (lambda (l) (map (lambda (v) (+ v 1)) l))
-:             x))
-: ((() 2 3 4) 1 2 3)
+: #;> (let ((other-writer
+:            (do/m <writer>
+:                  (/m! tell 'hello)
+:                  (/m! tell 'test)
+:                  (/m! tell 'world))))
+:       (do/m <writer>
+:             (x <- (/m! listens
+:                   (lambda (l) (map (lambda (s) 'arf) l))
+:                   other-writer))
+:             (return x)))
+: ((() arf arf arf) hello test world)
 
 **** <writer>-pass
 
@@ -479,37 +492,48 @@ Not generally used much except by those that know what they're doing, you're lik
 
 ***** Example
 
-: #;> (do <writer> 
-:         (x <- (/m! listen 
-:                   `((() . ,(lambda (l) 
-:                              (map (lambda (v) (+ v 1)) l)))
-:                     . (1 2 3))))
-:         (/m! pass x))
-: (() 1 2 3 2 3 4)
+: #;> (let ((other-writer
+:            (do/m <writer>
+:                  (/m! tell '(1 2 3))
+:                  (return
+:                   (/m! tell
+:                        (lambda (l)
+:                          (map ->string l)))))))
+:       (do/m <writer>
+:             (/m! pass other-writer)))
+: (() "(1 2 3)")
 
 **** <writer>-censor
 
 <procedure>(<writer>-censor f m)</procedure>
 
-Creates a monad resulting from the application of the provided function on the given monad, censoring the values that were in the given monad.
+Creates a monad resulting from the application of the provided function on the given monad, analyzing the values that were in the given monad.
 
-: #;> (do <writer> 
-:         (/m! censor (lambda (l) (map (lambda (v) (+ v 1)) l))
-:                    (/m! tell '(1 2 3))))
-: (() 2 3 4)
+Think of it as a shortcut to using pass without all the cruft, or flexibility.
+
+
+: #;> (let ((other-writer
+:            (do/m <writer>
+:                  (/m! tell '(1 2 3)))))
+:        (do/m <writer>
+:              (/m! censor
+:                   (lambda (l) (map ->string l))
+:                   other-writer)))
+: (() "(1 2 3)")
 
 * Version History
 
-| Version | Notes                                                                                                                                                                                                                                                            |
-|---------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|     3.0 | Renamed :! to /m! and : to /m due to : already being used for explicit specialization (oops)                                                                                                                                                                     |
-|     2.4 | Added :! keyword, fixed : keyword                                                                                                                                                                                                                                |
-|     2.3 | Added fail function for all monads which defaults to assert, but is definied appropriately for the <exception> and <maybe> monads. Added : keyword to using and do-using. Added >>=, return and fail bindings to do-using syntax.                                |
-|     2.2 | Added failure states for monads                                                                                                                                                                                                                                  |
+| Version | Notes |
+|---------+-------|
+|     3.1 | 
+|     3.0 | Renamed :! to /m! and : to /m due to : already being used for explicit specialization |
+|     2.4 | Added :! keyword, fixed : keyword |
+|     2.3 | Added fail function for all monads which defaults to assert, but is definied appropriately for the <exception> and <maybe> monads. Added : keyword to using and do-using. Added >>=, return and fail bindings to do-using syntax. |
+|     2.2 | Added failure states for monads |
 |     2.1 | Rewrote API to allow for terser execution and a simpler interface. Removed use of promises completely. Removed doto-using, run-chain, and run from the API completely. Added do-using syntax. Maybe monad is now self-defined for it's value or no-value states. |
-|     2.0 | Internal rewrite that broke the API, immediately followed by 2.1.                                                                                                                                                                                                |
-|     1.1 | Added Cameron Swords' State, Reader, Writer, CPS and Exception monads                                                                                                                                                                                            |
-|     1.0 | Initial release                                                                                                                                                                                                                                                  |
+|     2.0 | Internal rewrite that broke the API, immediately followed by 2.1. |
+|     1.1 | Added Cameron Swords' State, Reader, Writer, CPS and Exception monads |
+|     1.0 | Initial release |
 
 * Contribution
 
