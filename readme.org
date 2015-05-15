@@ -525,7 +525,10 @@ Think of it as a shortcut to using pass without all the cruft, or flexibility.
 
 | Version | Notes |
 |---------+-------|
-|     3.1 | 
+|     4.0 | Dropped Exception and CPS, as they did not work under basic tests; removed do keyword, fixed Writer monad |
+|     3.3 | Total rewrite, no API changes |
+|     3.2 | Minor syntax change |
+|     3.1 | Use let* instead of letrec |
 |     3.0 | Renamed :! to /m! and : to /m due to : already being used for explicit specialization |
 |     2.4 | Added :! keyword, fixed : keyword |
 |     2.3 | Added fail function for all monads which defaults to assert, but is definied appropriately for the <exception> and <maybe> monads. Added : keyword to using and do-using. Added >>=, return and fail bindings to do-using syntax. |
