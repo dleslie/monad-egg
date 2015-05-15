@@ -180,7 +180,7 @@ Or, a more complex example:
 : ;Returns:
 : Nothing
 
-*** (do monad [body ...])
+*** (do/m monad [body ...])
 
 Alias for (do-using monad [body ...]).
 
