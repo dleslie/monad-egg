@@ -37,13 +37,13 @@
       `(() . ,new-state)))
 
   (define (<state>-gets f)
-    (do-using 
+    (do/m 
      <state>
      (s <- (/m get))
      (return (f s))))
 
   (define (<state>-modify f)
-    (do-using
+    (do/m
      <state>
      (s <- (/m get))
      (/m! put (f s))))
@@ -56,9 +56,9 @@
   (define (<reader>-ask a) a)
 
   (define (<reader>-asks f)
-    (do-using <reader>
-	      (x <- (/m ask))
-	      (return (f x))))
+    (do/m <reader>
+          (x <- (/m ask))
+          (return (f x))))
 
   (define (<reader>-local f r)
     (lambda (a)
@@ -78,9 +78,9 @@
     (cons a (cdr a)))
 
   (define (<writer>-listens f m)
-    (do <writer>
-      (pair <- (/m! listen m))
-      (return (cons (car pair) (f (cdr pair))))))
+    (do/m <writer>
+          (pair <- (/m! listen m))
+          (return (cons (car pair) (f (cdr pair))))))
 
   (define (<writer>-pass m) ; expects ((a f) w)
     (let* ((p (car m))
@@ -91,7 +91,7 @@
 
   (define (<writer>-censor f m)
     (<writer>-pass 
-     (do-using <writer>
-               (apply (/m tell) (cdr m))
-               (return (/m! tell f)))))
+     (do/m <writer>
+           (apply (/m tell) (cdr m))
+           (return (/m! tell f)))))
   )

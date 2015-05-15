@@ -1,4 +1,4 @@
-(module monad-core (%build-for-monad %let-alias define-monad using do do/m do-using)
+(module monad-core (%build-for-monad %let-alias define-monad using do/m do-using)
   (import scheme chicken extras srfi-1)
 
   (define-syntax %build-for-monad
@@ -22,12 +22,12 @@
 				 `(case-lambda (() (error (format "Failure in evaluating ~S monad." ',monad)))
 					       ((_ . _) (error (format "Failure in evaluating ~S monad." ',monad)))))))
 	 `(,%begin
-	    (,%define ,(symbol-append (strip-syntax monad) '-unit)
-	      ,unit-function)
-	    (,%define ,(symbol-append (strip-syntax monad) '-bind)
-	      ,bind-function)
-	    (,%define ,(symbol-append (strip-syntax monad) '-fail)
-	      ,fail-function))))))
+           (,%define ,(symbol-append (strip-syntax monad) '-unit)
+                     ,unit-function)
+           (,%define ,(symbol-append (strip-syntax monad) '-bind)
+                     ,bind-function)
+           (,%define ,(symbol-append (strip-syntax monad) '-fail)
+                     ,fail-function))))))
   
   (define-syntax %let-alias
     (syntax-rules ()
@@ -86,4 +86,4 @@
     (syntax-rules ()
       ((do/m m ...)
        (do-using m ...))))
-)
+  )
