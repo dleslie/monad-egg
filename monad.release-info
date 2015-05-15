@@ -2,3 +2,4 @@
 (uri targz "https://github.com/dleslie/monad-egg/tarball/{egg-release}")
 (release "3.2")
 (release "3.3")
+(release "4.0")
