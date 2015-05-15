@@ -86,9 +86,4 @@
     (syntax-rules ()
       ((do/m m ...)
        (do-using m ...))))
-
-  (define-syntax do
-    (syntax-rules ()
-      ((do m ...)
-       (do-using m ...))))
 )
