@@ -241,7 +241,7 @@ Or, a more complex example:
 
 : (do-using <maybe> 
 :           (x <- (return 1))
-:           (if (eq? 2 (cadr x))
+:           (if (eq? 2 x)
 :               (return 'Banana)
 :               (fail))
 :           (y <- (return 'Apple))
