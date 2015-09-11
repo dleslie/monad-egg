@@ -9,7 +9,7 @@
 (install-extension
  'monad
  '("monad.so" "monad.import.so" "monad-core.so" "monad-core.import.so")
- '((version 4.0)))
+ '((version 4.1)))
 
 
 
