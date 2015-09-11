@@ -1,5 +1,6 @@
 (module monad *
-  (import scheme chicken extras srfi-1 monad-core)
+  (import scheme chicken monad-core)
+  (use extras srfi-1)
   (reexport monad-core)
   
   (define-monad
