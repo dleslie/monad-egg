@@ -10,7 +10,7 @@ Ok, well not.
 
 Monads are types that have:
 
-1. A binding function of the form: a -> (a -> M b) -> M b
+1. A binding function of the form: M a -> (a -> M b) -> M b
 2. A unit function: a -> M a
 
 That's it.
