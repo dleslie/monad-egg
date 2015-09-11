@@ -271,7 +271,7 @@ Simple monads pre-defined by this egg.
 
 *** Example
 
-: > (do <maybe> 
+: > (do/m <maybe> 
 :       (if #t 
 :           'Nothing 
 :           '(Just First))
@@ -287,7 +287,7 @@ Simple monads pre-defined by this egg.
 
 *** Example
 
-: #;> (do <list> 
+: #;> (do/m <list> 
 :         (x <- '(1 2 3))
 :         (y <- '(a b c))
 :         (return `(,x ,y)))
@@ -315,7 +315,7 @@ Retrieves the current state from a given <state> monad.
 
 ***** Example
 
-: #;> ((do <state> 
+: #;> ((do/m <state> 
 :          (x <- (/m get))
 :          (return x))
 :      "Hi!")
@@ -329,7 +329,7 @@ Creates a monad that retrieves a given state after filtering it with the functio
 
 ***** Example 
 
-: #;> ((do <state> 
+: #;> ((do/m <state> 
 :          (x <- (/m! gets (lambda (s) (+ s 1))))
 :          (return x))
 :      1)
@@ -343,7 +343,7 @@ Creates a monad that modifies the current state with a given function.
 
 ***** Example
 
-: #;> ((do <state> 
+: #;> ((do/m <state> 
 :          (/m! modify (lambda (v) 
 :                       (display (format "Received: ~S\n" v))
 :                       (+ v 1))))
@@ -359,7 +359,7 @@ Creates a monad that forces a value into the current <state> monad.
 
 ***** Example
 
-: #;> ((do <state> 
+: #;> ((do/m <state> 
 :          (/m! put 1))
 :      2)
 : (() . 1)
@@ -381,7 +381,7 @@ Extracts the current value from the current reader monad.
 
 ***** Example
 
-: #;> ((do <reader> 
+: #;> ((do/m <reader> 
 :          (x <- (/m ask))
 :          (return (+ x 1)))
 :      1)
@@ -395,7 +395,7 @@ Creates a monad that filters the current value in the reader monad with the give
 
 ***** Example
 
-: #;> ((do <reader> 
+: #;> ((do/m <reader> 
 :          (/m! asks (lambda (v) 
 :                     (+ v 1))))
 :      1)
@@ -410,10 +410,10 @@ Creats a monad that first filters the current reader monad value with the provid
 
 ***** Example
 
-: #;> ((do <reader> 
+: #;> ((do/m <reader> 
 :          (/m! local 
 :              (lambda (v) (+ v 1))
-:              (do <reader> 
+:              (do/m <reader> 
 :                  (x <- (/m ask))
 :                  (return x))))
 :      1)
@@ -525,6 +525,7 @@ Think of it as a shortcut to using pass without all the cruft, or flexibility.
 
 | Version | Notes |
 |---------+-------|
+|     4.1 | Fixed #7, updated readme.org |
 |     4.0 | Dropped Exception and CPS, as they did not work under basic tests; removed do keyword, fixed Writer monad |
 |     3.3 | Total rewrite, no API changes |
 |     3.2 | Minor syntax change |
