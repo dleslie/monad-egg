@@ -10,7 +10,7 @@
   (define-monad
     <maybe>
     (lambda (a)  `(Just ,a))
-    (lambda (a f) (if (not (eq? 'Nothing a)) (f a) 'Nothing))
+    (lambda (a f) (if (not (eq? 'Nothing a)) (f (cadr a)) 'Nothing))
     (case-lambda (() 'Nothing)
 		 ((_ . _) 'Nothing)))
 

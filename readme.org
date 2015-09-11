@@ -265,7 +265,7 @@ Simple monads pre-defined by this egg.
 :  (define-monad
 :    <maybe>
 :    (lambda (a) a)
-:    (lambda (a f) (if a (f a) #f))
+:    (lambda (a f) (if a (f (cadr a)) #f))
 :    (case-lambda (() 'Nothing)
 :                 ((_ . _) 'Nothing)))
 
