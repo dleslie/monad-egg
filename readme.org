@@ -1,6 +1,8 @@
 * Monads
 Monads for Scheme
 
+*Please file Issues if you find a bug or need help; I will attempt to address them!*
+
 * Description
 ** What is a Monad?
 
