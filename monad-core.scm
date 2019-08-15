@@ -1,5 +1,8 @@
 (module monad-core (%build-for-monad %let-alias define-monad using do/m do-using)
-  (import scheme chicken extras srfi-1)
+  (import scheme)
+  (import chicken.base)
+  (import chicken.format)
+  (import srfi-1)
 
   (define-syntax %build-for-monad
     (er-macro-transformer
@@ -19,8 +22,8 @@
 	      (bind-function (cadr expression))
 	      (fail-function (caddr expression))
 	      (fail-function (if fail-function fail-function
-				 `(case-lambda (() (error (format "Failure in evaluating ~S monad." ',monad)))
-					       ((_ . _) (error (format "Failure in evaluating ~S monad." ',monad)))))))
+				 `(case-lambda (() (error (sprintf "Failure in evaluating ~S monad." ',monad)))
+					       ((_ . _) (error (sprintf "Failure in evaluating ~S monad." ',monad)))))))
 	 `(,%begin
            (,%define ,(symbol-append (strip-syntax monad) '-unit)
                      ,unit-function)
