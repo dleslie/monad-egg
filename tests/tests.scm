@@ -1,6 +1,8 @@
-(use test)
-(use monad)
-(use srfi-1)
+(import chicken.string)
+(import srfi-1)
+
+(import test)
+(import monad)
 
 (define (run-tests)
   (test-group "Identity"

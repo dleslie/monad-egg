@@ -1,0 +1,13 @@
+;;; monad.egg -*- Hen -*-
+
+((synopsis "Monads")
+ (category data)
+ (version 5.0)
+ (dependencies srfi-1)
+ (test-dependencies test compile-file)
+ (license "BSD")
+ (author "Daniel J. Leslie")
+ (components
+   (extension monad-core)
+   (extension monad
+     (component-dependencies monad-core))))

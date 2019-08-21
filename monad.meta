@@ -1,9 +1,0 @@
-;;;; monad.setup -*- Scheme -*-
-
-((license "BSD")
- (category data)
- (author "Daniel J. Leslie")
- (synopsis "Monads")
- (depends srfi-1)
- (test-depends test srfi-1)
- (doc-from-wiki))

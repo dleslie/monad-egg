@@ -1,5 +1,5 @@
-(use utils)
-(use test)
+(import test)
+(import compile-file)
 
 (test-group "CSC"
             (compile-file "tests.scm")
@@ -8,3 +8,5 @@
 (test-group "CSI"
             (load "tests.scm")
             (run-tests))
+
+(test-exit)
