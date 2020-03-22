@@ -20,13 +20,6 @@
 		 ((_ . _) 'Nothing)))
 
   (define-monad
-    <either>
-    (lambda (a)  `(Right ,a))
-    (lambda (a f) (if (not (eq? 'Left (car a))) (f (cadr a)) a))
-    (case-lambda (() '(Left #f))
-                 ((e) `(Left ,e))))
-
-  (define-monad
     <list>
     (lambda (a) (list a))
     (lambda (a f) (concatenate (map f a))))
