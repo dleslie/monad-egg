@@ -2,7 +2,7 @@
 
 ((synopsis "Monads")
  (category data)
- (version 5.0)
+ (version 5.1)
  (dependencies srfi-1)
  (test-dependencies test compile-file)
  (license "BSD")
