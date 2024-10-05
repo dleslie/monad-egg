@@ -17,7 +17,7 @@
     (lambda (a)  `(Just ,a))
     (lambda (a f) (if (not (eq? 'Nothing a)) (f (cadr a)) 'Nothing))
     (case-lambda (() 'Nothing)
-		 ((_ . _) 'Nothing)))
+                 ((_ . _) 'Nothing)))
 
   (define-monad
     <either>
@@ -36,10 +36,10 @@
     (lambda (a) (lambda (s) `(,a . ,s)))
     (lambda (a f)
       (lambda (s)
-	(let* ((p (a s))
-	       (a^ (car p))
-	       (s^ (cdr p)))
-	  ((f a^) s^)))))
+        (let* ((p (a s))
+               (a^ (car p))
+               (s^ (cdr p)))
+          ((f a^) s^)))))
 
   (define (<state>-get s)
     `(,s . ,s))
@@ -50,15 +50,15 @@
 
   (define (<state>-gets f)
     (do/m 
-     <state>
-     (s <- (/m get))
-     (return (f s))))
+      <state>
+      (s <- (/m get))
+      (return (f s))))
 
   (define (<state>-modify f)
     (do/m
-     <state>
-     (s <- (/m get))
-     (/m! put (f s))))
+      <state>
+      (s <- (/m get))
+      (/m! put (f s))))
 
   (define-monad
     <reader>
@@ -81,11 +81,11 @@
     (lambda (a) (cons a '()))
     (lambda (a f)
       (let* ((b (f (car a))))
-	(cons (car b) (append (cdr a) (cdr b))))))
+        (cons (car b) (append (cdr a) (cdr b))))))
 
   (define (<writer>-tell . v)
     (cons '() v))
-  
+
   (define (<writer>-listen a)
     (cons a (cdr a)))
 
@@ -96,14 +96,14 @@
 
   (define (<writer>-pass m) ; expects ((a f) w)
     (let* ((p (car m))
-	   (a (car p))
-	   (f (cadr p))
-	   (w (cdr m)))
+           (a (car p))
+           (f (cadr p))
+           (w (cdr m)))
       (cons a (f w))))
 
   (define (<writer>-censor f m)
     (<writer>-pass 
-     (do/m <writer>
-           (apply (/m tell) (cdr m))
-           (return (/m! tell f)))))
+      (do/m <writer>
+            (apply (/m tell) (cdr m))
+            (return (/m! tell f)))))
   )
