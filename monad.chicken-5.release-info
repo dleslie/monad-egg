@@ -1,3 +1,4 @@
 (repo git "git@github.com:dleslie/monad-egg.git")
 (uri targz "https://github.com/dleslie/monad-egg/tarball/{egg-release}")
 (release "5.0")
+(release "5.1")
