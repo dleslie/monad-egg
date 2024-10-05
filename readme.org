@@ -264,12 +264,12 @@ Simple monads pre-defined by this egg.
 
 ** Maybe
 
-:  (define-monad
-:    <maybe>
-:    (lambda (a) a)
-:    (lambda (a f) (if a (f (cadr a)) #f))
-:    (case-lambda (() 'Nothing)
-:                 ((_ . _) 'Nothing)))
+:   (define-monad
+:     <maybe>
+:     (lambda (a)  `(Just ,a))
+:     (lambda (a f) (if (not (eq? 'Nothing a)) (f (cadr a)) 'Nothing))
+:     (case-lambda (() 'Nothing)
+:                  ((_ . _) 'Nothing)))
 
 *** Example
 
