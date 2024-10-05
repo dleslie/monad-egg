@@ -280,6 +280,23 @@ Simple monads pre-defined by this egg.
 :       '(Just Second))
 : Nothing
 
+** Either
+
+:  (define-monad
+:    <either>
+:    (lambda (a)  `(Right ,a))
+:    (lambda (a f) (if (not (eq? 'Left (car a))) (f (cadr a)) a))
+:    (case-lambda (() '(Left #f))
+:                 ((e) `(Left ,e))))
+
+*** Example
+
+: #;3> (do/m <either>
+:         (x <- (return 1))
+:         (y <- (fail "..."))
+:         (return (+ x y)))
+: (Left "...")
+
 ** List
 
 :  (define-monad
