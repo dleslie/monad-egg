@@ -544,6 +544,7 @@ Think of it as a shortcut to using pass without all the cruft, or flexibility.
 
 | Version | Notes |
 |---------+-------|
+|     5.1 | Added Either monad, fixed documentation |
 |     5.0 | Ported to Chicken 5 |
 |     4.1 | Fixed #7, updated readme.org |
 |     4.0 | Dropped Exception and CPS, as they did not work under basic tests; removed do keyword, fixed Writer monad |
@@ -571,9 +572,10 @@ Original Egg By Daniel J. Leslie
 dan@ironoxide.ca
 
 Additional Contributors:
-Cameron Swords
-Peter Bex
-Alice Maz
+- Cameron Swords
+- Peter Bex
+- Alice Maz
+- Kelly Betty
 
 * License
 
